@@ -1,0 +1,44 @@
+main: com.cavetale.server.ServerPlugin
+
+name: Server
+version: 0.1
+description: Server Plugin
+api-version: 1.17
+
+author: StarTux
+website: https://github.com/StarTux/Server
+
+depend: [Core, Connect]
+softdepend: []
+
+commands:
+
+  server:
+    aliases: []
+    description: Warp to server
+    permission: server.server
+    usage: '/server <name>'
+
+  serveradmin:
+    aliases: [serveradm]
+    description: Admin command
+    permission: server.admin
+    usage: '/serveradmin'
+
+permissions:
+
+  server.server:
+    description: Use /server
+    default: op
+
+  server.locked:
+    description: Visit locked servers
+    default: op
+
+  server.hidden:
+    description: See hidden servers
+    default: op
+
+  server.admin:
+    description: Use /serveradmin
+    default: op
