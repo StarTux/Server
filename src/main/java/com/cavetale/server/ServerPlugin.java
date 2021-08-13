@@ -122,6 +122,8 @@ public final class ServerPlugin extends JavaPlugin {
         // Remove missing servers
         for (String key : new ArrayList<>(serverMap.keySet())) {
             if (key.equals(serverName)) continue;
+            ServerSlot slot = serverMap.get(key);
+            if (slot == null || slot.tag.persistent) continue;
             if (list.contains(key)) continue;
             unregisterServer(key);
         }
