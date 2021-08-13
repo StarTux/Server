@@ -30,8 +30,8 @@ public final class ServerPlugin extends JavaPlugin {
         eventListener.enable();
         loadThisServer();
         loadOtherServers();
-        long storeServerInterval = 60L * 20L;
-        long loadServerInterval = 60L * 20L * 10L;
+        long storeServerInterval = 60L * 20L; // 1 minute
+        long loadServerInterval = 60L * 20L; // 1 minute
         Bukkit.getScheduler().runTaskTimer(this, this::storeThisServer, storeServerInterval, storeServerInterval);
         Bukkit.getScheduler().runTaskTimer(this, this::loadOtherServers, loadServerInterval, loadServerInterval);
     }
@@ -70,7 +70,7 @@ public final class ServerPlugin extends JavaPlugin {
 
     protected void storeThisServer() {
         String key = "cavetale.server." + serverTag.name;
-        Redis.set(key, serverTag.toJson(), 60L * 4L);
+        Redis.set(key, serverTag.toJson(), serverTag.persistent ? 0 : 60L * 5L);
     }
 
     protected void registerServer(ServerTag tag) {
@@ -96,7 +96,8 @@ public final class ServerPlugin extends JavaPlugin {
     }
 
     protected void loadOtherServers() {
-        for (String otherServer : Connect.getInstance().listServers()) {
+        List<String> list = Connect.getInstance().listServers();
+        for (String otherServer : list) {
             if (serverName.equals(otherServer)) continue;
             String key = "cavetale.server." + otherServer;
             String json = Redis.get(key);
@@ -104,6 +105,12 @@ public final class ServerPlugin extends JavaPlugin {
             ServerTag tag = ServerTag.fromJson(json);
             if (tag.name == null) continue;
             registerServer(tag);
+        }
+        // Remove missing servers
+        for (String key : new ArrayList<>(serverMap.keySet())) {
+            if (key.equals(serverName)) continue;
+            if (list.contains(key)) continue;
+            unregisterServer(key);
         }
     }
 }
