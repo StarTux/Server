@@ -76,7 +76,7 @@ public final class ServerPlugin extends JavaPlugin {
      */
     protected void storeThisServer() {
         String key = "cavetale.server." + serverTag.name;
-        Redis.set(key, serverTag.toJson(), serverTag.persistent ? 60L * 60L * 24L : 60L * 5L);
+        Redis.set(key, serverTag.toJson(), serverTag.persistent ? 0L : 60L * 5L);
     }
 
     /**
