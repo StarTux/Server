@@ -2,7 +2,10 @@ package com.cavetale.server;
 
 import com.cavetale.core.command.CommandNode;
 import com.cavetale.core.command.CommandWarn;
+import com.cavetale.core.util.Json;
+import com.cavetale.mytems.Mytems;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -10,9 +13,11 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
+import org.bukkit.inventory.ItemStack;
 
 @RequiredArgsConstructor
 public final class ServerAdminCommand implements TabExecutor {
@@ -36,6 +41,16 @@ public final class ServerAdminCommand implements TabExecutor {
             .completableList(c -> plugin.getServerList().stream()
                              .map(slot -> slot.name)
                              .collect(Collectors.toList()));
+        rootNode.addChild("set").arguments("<key> <value>")
+            .description("Change server settings")
+            .completableList(Arrays.asList("persistent",
+                                           "prio", "priority",
+                                           "locked",
+                                           "hidden",
+                                           "displayName",
+                                           "description",
+                                           "material"))
+            .senderCaller(this::set);
         plugin.getCommand("serveradmin").setExecutor(this);
     }
 
@@ -87,6 +102,62 @@ public final class ServerAdminCommand implements TabExecutor {
         sender.sendMessage(Component.text().content("Server Info " + slot.name).color(NamedTextColor.YELLOW)
                            .append(Component.newline())
                            .append(Component.text(slot.tag.prettyPrint())));
+        return true;
+    }
+
+    boolean set(CommandSender sender, String[] args) {
+        if (args.length < 2) return false;
+        String key = args[0];
+        String value = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
+        try {
+            switch (key) {
+            case "persistent":
+                plugin.serverTag.persistent = Boolean.parseBoolean(value);
+                break;
+            case "priority": case "prio":
+                plugin.serverTag.priority = Integer.parseInt(value);
+                break;
+            case "locked":
+                plugin.serverTag.locked = Boolean.parseBoolean(value);
+                break;
+            case "hidden":
+                plugin.serverTag.hidden = Boolean.parseBoolean(value);
+                break;
+            case "displayName": {
+                Component comp = Json.deserializeComponent(value);
+                value = Json.serializeComponent(comp);
+                plugin.serverTag.displayName = value;
+                break;
+            }
+            case "description": {
+                Component comp = Json.deserializeComponent(value);
+                value = Json.serializeComponent(comp);
+                plugin.serverTag.description = Arrays.asList(value);
+                break;
+            }
+            case "material": {
+                ItemStack item = Mytems.deserializeItem(value);
+                if (item != null) {
+                    value = Mytems.forItem(item).serializeItem(item);
+                    plugin.serverTag.material = value;
+                    break;
+                }
+                Material mat = Material.valueOf(value.toUpperCase());
+                value = mat.getKey().getKey();
+                plugin.serverTag.material = value;
+                break;
+            }
+            default:
+                throw new CommandWarn("Invalid key: " + key);
+            }
+        } catch (IllegalArgumentException iae) {
+            throw new CommandWarn("Invalid value: " + value);
+        }
+        sender.sendMessage(Component.text("Set " + key + " to " + value, NamedTextColor.YELLOW));
+        plugin.saveThisServer();
+        plugin.registerServer(plugin.serverTag);
+        plugin.storeThisServer();
+        plugin.broadcastThisServer();
         return true;
     }
 }

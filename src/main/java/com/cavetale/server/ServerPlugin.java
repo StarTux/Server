@@ -59,18 +59,31 @@ public final class ServerPlugin extends JavaPlugin {
         File file = new File(getDataFolder(), "tag.json");
         serverTag = ServerTag.load(file);
         serverTag.name = serverName;
-        if (!file.exists()) {
-            getDataFolder().mkdirs();
-            serverTag.save(file);
-        }
+        if (!file.exists()) saveThisServer();
         registerServer(serverTag);
         storeThisServer();
-        Connect.getInstance().broadcast("server:update", serverTag.toJson());
+        broadcastThisServer();
     }
 
+    protected void saveThisServer() {
+        File file = new File(getDataFolder(), "tag.json");
+        getDataFolder().mkdirs();
+        serverTag.save(file);
+    }
+
+    /**
+     * Put in Redis storage.
+     */
     protected void storeThisServer() {
         String key = "cavetale.server." + serverTag.name;
-        Redis.set(key, serverTag.toJson(), serverTag.persistent ? 0 : 60L * 5L);
+        Redis.set(key, serverTag.toJson(), serverTag.persistent ? 60L * 60L * 24L : 60L * 5L);
+    }
+
+    /**
+     * Broadcast update via Connect queue.
+     */
+    protected void broadcastThisServer() {
+        Connect.getInstance().broadcast("server:update", serverTag.toJson());
     }
 
     protected void registerServer(ServerTag tag) {
