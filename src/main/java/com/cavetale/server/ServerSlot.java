@@ -1,6 +1,6 @@
 package com.cavetale.server;
 
-import com.cavetale.core.event.player.PluginPlayerEvent;
+import com.cavetale.core.util.Json;
 import com.winthier.connect.Connect;
 import java.util.Collections;
 import java.util.List;
@@ -52,10 +52,8 @@ public final class ServerSlot implements Comparable<ServerSlot> {
                            .append(Component.text("Joining "))
                            .append(displayName)
                            .append(Component.text("...")));
+        Connect.getInstance().broadcast("server:switch", Json.serialize(new ServerSwitchPacket(player.getUniqueId(), name)));
         Bungee.send(player, name);
-        PluginPlayerEvent.Name.SWITCH_SERVER.ultimate(plugin, player)
-            .detail("server_name", name)
-            .call();
     }
 
     protected void enable() {
