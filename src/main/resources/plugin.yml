@@ -42,3 +42,7 @@ permissions:
   server.admin:
     description: Use /serveradmin
     default: op
+
+  server.visit.*:
+    description: Visit any server
+    default: false

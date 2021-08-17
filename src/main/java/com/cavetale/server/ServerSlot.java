@@ -15,6 +15,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginIdentifiableCommand;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.permissions.Permission;
+import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.plugin.Plugin;
 
 @RequiredArgsConstructor
@@ -58,6 +60,12 @@ public final class ServerSlot implements Comparable<ServerSlot> {
 
     protected void enable() {
         permission = "server.visit." + name;
+        if (Bukkit.getPluginManager().getPermission(permission) == null) {
+            Permission perm = new Permission(permission,
+                                             "Visit the " + name + " server",
+                                             PermissionDefault.FALSE);
+            Bukkit.getPluginManager().addPermission(perm);
+        }
         command = new MyCommand();
         command.setPermission(permission + ";" + WILDCARD_PERMISSION);
         if (!Bukkit.getCommandMap().register("server", command)) {

@@ -20,9 +20,12 @@ public final class ServerPlugin extends JavaPlugin {
     protected final Map<String, ServerSlot> serverMap = new HashMap<>();
     protected String serverName;
     protected ServerTag serverTag;
+    protected boolean syncing;
+    protected boolean enabling;
 
     @Override
     public void onEnable() {
+        enabling = true;
         instance = this;
         Bukkit.getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
         serverCommand.enable();
@@ -34,6 +37,7 @@ public final class ServerPlugin extends JavaPlugin {
         long loadServerInterval = 60L * 20L; // 1 minute
         Bukkit.getScheduler().runTaskTimer(this, this::storeThisServer, storeServerInterval, storeServerInterval);
         Bukkit.getScheduler().runTaskTimer(this, this::loadOtherServers, loadServerInterval, loadServerInterval);
+        enabling = false;
     }
 
     @Override
@@ -98,6 +102,7 @@ public final class ServerPlugin extends JavaPlugin {
             getLogger().info("Registering server " + tag.name);
             slot.enable();
             serverMap.put(tag.name, slot);
+            syncCommands();
         }
     }
 
@@ -127,5 +132,19 @@ public final class ServerPlugin extends JavaPlugin {
             if (list.contains(key)) continue;
             unregisterServer(key);
         }
+    }
+
+    protected void syncCommands() {
+        if (enabling || syncing) return;
+        syncing = true;
+        Bukkit.getScheduler().runTask(this, () -> {
+                syncing = false;
+                getLogger().info("Syncing commands");
+                try {
+                    getServer().getClass().getMethod("syncCommands").invoke(getServer());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
     }
 }
