@@ -45,7 +45,7 @@ public final class EventListener implements Listener {
                 Player player = Bukkit.getPlayer(packet.playerUuid);
                 if (player != null) {
                     PluginPlayerEvent.Name.SWITCH_SERVER.ultimate(plugin, player)
-                        .detail("server_name", plugin.serverName)
+                        .detail(PluginPlayerEvent.Detail.NAME, plugin.serverName)
                         .call();
                     plugin.getLogger().info("Server switch instant: " + player.getName());
                 } else {
@@ -64,7 +64,7 @@ public final class EventListener implements Listener {
         long now = System.currentTimeMillis();
         if (now - time > 10000) return; // 10s
         PluginPlayerEvent.Name.SWITCH_SERVER.ultimate(plugin, event.getPlayer())
-            .detail("server_name", plugin.serverName)
+            .detail(PluginPlayerEvent.Detail.NAME, plugin.serverName)
             .call();
         plugin.getLogger().info("Server switch delayed: " + event.getPlayer().getName());
     }
