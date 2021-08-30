@@ -33,7 +33,7 @@ public final class ServerSlot implements Comparable<ServerSlot> {
     protected Component component;
     protected ItemStack itemStack;
 
-    public void tryToSwitch(Player player) {
+    public void tryToSwitch(Player player, boolean forceOnline) {
         if (name.equals(plugin.serverName)) {
             player.sendMessage(Component.text("You're already on this server", NamedTextColor.YELLOW));
             return;
@@ -46,7 +46,7 @@ public final class ServerSlot implements Comparable<ServerSlot> {
             player.sendMessage(Component.text("This server is locked!", NamedTextColor.RED));
             return;
         }
-        if (!Connect.getInstance().listServers().contains(name)) {
+        if (!forceOnline && !Connect.getInstance().listServers().contains(name)) {
             player.sendMessage(Component.text()
                                .append(Component.text("Please wait while "))
                                .append(displayName)
@@ -157,7 +157,7 @@ public final class ServerSlot implements Comparable<ServerSlot> {
                 sender.sendMessage("[server:" + name + "] Player expected");
                 return true;
             }
-            tryToSwitch(player);
+            tryToSwitch(player, false);
             return true;
         }
 

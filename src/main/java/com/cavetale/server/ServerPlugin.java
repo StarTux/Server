@@ -164,7 +164,7 @@ public final class ServerPlugin extends JavaPlugin {
         for (Player player : Bukkit.getOnlinePlayers()) {
             String choice = Redis.get("cavetale.server_choice." + player.getUniqueId());
             if (choice != null && slot.name.equals(choice)) {
-                slot.tryToSwitch(player);
+                slot.tryToSwitch(player, true);
             }
         }
     }
