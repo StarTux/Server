@@ -47,8 +47,11 @@ public final class ServerSlot implements Comparable<ServerSlot> {
             return;
         }
         if (!Connect.getInstance().listServers().contains(name)) {
-            player.sendMessage(Component.text("Please wait while this server is starting up...",
-                                              NamedTextColor.RED));
+            player.sendMessage(Component.text()
+                               .append(Component.text("Please wait while "))
+                               .append(displayName)
+                               .append(Component.text(" is starting up..."))
+                               .color(NamedTextColor.YELLOW));
             Redis.set("cavetale.server_choice." + player.getUniqueId(), name, 60L);
             if (tag.waitOnWake) {
                 Redis.lpush("cavetale.server_wake." + name, "wake_up", 60L);

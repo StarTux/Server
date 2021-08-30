@@ -4,6 +4,10 @@ import com.cavetale.core.command.CommandNode;
 import com.cavetale.core.command.CommandWarn;
 import com.cavetale.core.util.Json;
 import com.cavetale.mytems.Mytems;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -49,7 +53,8 @@ public final class ServerAdminCommand implements TabExecutor {
                                            "hidden",
                                            "displayName",
                                            "description",
-                                           "material"))
+                                           "material",
+                                           "waitonwake"))
             .senderCaller(this::set);
         plugin.getCommand("serveradmin").setExecutor(this);
     }
@@ -147,6 +152,20 @@ public final class ServerAdminCommand implements TabExecutor {
                 plugin.serverTag.material = value;
                 break;
             }
+            case "waitonwake":
+                plugin.serverTag.waitOnWake = Boolean.parseBoolean(value);
+                if (plugin.serverTag.waitOnWake) {
+                    try {
+                        try (PrintWriter out = new PrintWriter("WaitOnWake")) {
+                            out.println(plugin.serverName);
+                        }
+                    } catch (FileNotFoundException fnfe) {
+                        throw new UncheckedIOException(fnfe);
+                    }
+                } else {
+                    new File("WaitOnWake").delete();
+                }
+                break;
             default:
                 throw new CommandWarn("Invalid key: " + key);
             }

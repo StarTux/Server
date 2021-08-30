@@ -129,8 +129,8 @@ public final class ServerPlugin extends JavaPlugin {
         Set<String> allKeys = Redis.keys("cavetale.server.*");
         List<String> list = new ArrayList<>();
         for (String redisKey : allKeys) {
-            String serverName = redisKey.substring(16);
-            if (serverName.equals(redisKey)) continue;
+            String theServerName = redisKey.substring(16);
+            if (serverName.equals(theServerName)) continue;
             String json = Redis.get(redisKey);
             if (json == null) continue;
             ServerTag tag = ServerTag.fromJson(json);
