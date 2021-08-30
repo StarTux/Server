@@ -24,6 +24,7 @@ public final class ServerTag {
     protected String displayName;
     protected List<String> description;
     protected String material;
+    protected boolean waitOnWake;
 
     public Component parseDisplayName() {
         return displayName != null

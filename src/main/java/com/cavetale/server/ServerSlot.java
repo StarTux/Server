@@ -2,6 +2,7 @@ package com.cavetale.server;
 
 import com.cavetale.core.util.Json;
 import com.winthier.connect.Connect;
+import com.winthier.connect.Redis;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -46,8 +47,12 @@ public final class ServerSlot implements Comparable<ServerSlot> {
             return;
         }
         if (!Connect.getInstance().listServers().contains(name)) {
-            player.sendMessage(Component.text("This server is currently offline! Please try again later.",
+            player.sendMessage(Component.text("Please wait while this server is starting up...",
                                               NamedTextColor.RED));
+            Redis.set("cavetale.server_choice." + player.getUniqueId(), name, 60L);
+            if (tag.waitOnWake) {
+                Redis.lpush("cavetale.server_wake." + name, "wake_up", 60L);
+            }
             return;
         }
         player.sendMessage(Component.text().color(NamedTextColor.GREEN)
@@ -56,6 +61,7 @@ public final class ServerSlot implements Comparable<ServerSlot> {
                            .append(Component.text("...")));
         Connect.getInstance().broadcast("server:switch", Json.serialize(new ServerSwitchPacket(player.getUniqueId(), name)));
         Bungee.send(player, name);
+        Redis.del("cavetale.server_choice." + player.getUniqueId());
     }
 
     protected void enable() {

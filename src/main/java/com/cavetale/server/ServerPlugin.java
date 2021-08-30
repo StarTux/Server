@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import lombok.Getter;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class ServerPlugin extends JavaPlugin {
@@ -64,6 +65,9 @@ public final class ServerPlugin extends JavaPlugin {
         serverTag = ServerTag.load(file);
         serverTag.name = serverName;
         if (!file.exists()) saveThisServer();
+        if (new File("WaitOnWake").exists()) {
+            serverTag.waitOnWake = true;
+        }
         registerServer(serverTag);
         storeThisServer();
         broadcastThisServer();
@@ -103,6 +107,13 @@ public final class ServerPlugin extends JavaPlugin {
             slot.enable();
             serverMap.put(tag.name, slot);
             syncCommands();
+        }
+        // Server woke up! Send all players who want to be on it.
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            String choice = Redis.get("cavetale.server_choice." + player.getUniqueId());
+            if (choice != null && slot.name.equals(choice)) {
+                slot.tryToSwitch(player);
+            }
         }
     }
 
