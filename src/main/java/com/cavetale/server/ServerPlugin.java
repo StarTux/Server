@@ -112,13 +112,6 @@ public final class ServerPlugin extends JavaPlugin {
             serverMap.put(tag.name, slot);
             syncCommands();
         }
-        // Server woke up! Send all players who want to be on it.
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            String choice = Redis.get("cavetale.server_choice." + player.getUniqueId());
-            if (choice != null && slot.name.equals(choice)) {
-                slot.tryToSwitch(player);
-            }
-        }
     }
 
     protected void unregisterServer(String name) {
@@ -163,5 +156,16 @@ public final class ServerPlugin extends JavaPlugin {
                     e.printStackTrace();
                 }
             });
+    }
+
+    protected void serverUpdateReceived(ServerTag tag) {
+        ServerSlot slot = serverMap.get(tag.name);
+        if (slot == null) return;
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            String choice = Redis.get("cavetale.server_choice." + player.getUniqueId());
+            if (choice != null && slot.name.equals(choice)) {
+                slot.tryToSwitch(player);
+            }
+        }
     }
 }

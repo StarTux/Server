@@ -32,6 +32,7 @@ public final class EventListener implements Listener {
             if (serverTag.name != null && !serverTag.name.equals(plugin.serverName)) {
                 plugin.getLogger().info("Server update received: " + serverTag.name);
                 plugin.registerServer(serverTag);
+                plugin.serverUpdateReceived(serverTag);
             }
             break;
         case "server:remove":
