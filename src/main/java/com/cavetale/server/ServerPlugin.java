@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -125,15 +126,17 @@ public final class ServerPlugin extends JavaPlugin {
     }
 
     protected void loadOtherServers() {
-        List<String> list = Connect.getInstance().listServers();
-        for (String otherServer : list) {
-            if (serverName.equals(otherServer)) continue;
-            String key = "cavetale.server." + otherServer;
-            String json = Redis.get(key);
+        Set<String> allKeys = Redis.keys("cavetale.server.*");
+        List<String> list = new ArrayList<>();
+        for (String redisKey : allKeys) {
+            String serverName = redisKey.substring(16);
+            if (serverName.equals(redisKey)) continue;
+            String json = Redis.get(redisKey);
             if (json == null) continue;
             ServerTag tag = ServerTag.fromJson(json);
             if (tag.name == null) continue;
             registerServer(tag);
+            list.add(serverName);
         }
         // Remove missing servers
         for (String key : new ArrayList<>(serverMap.keySet())) {
