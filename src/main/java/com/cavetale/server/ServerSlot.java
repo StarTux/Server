@@ -54,7 +54,7 @@ public final class ServerSlot implements Comparable<ServerSlot> {
                                .color(NamedTextColor.YELLOW));
             Redis.set("cavetale.server_choice." + player.getUniqueId(), name, 60L);
             if (tag.waitOnWake) {
-                Redis.lpush("cavetale.server_wake." + name, "wake_up", 60L);
+                Redis.lpush("cavetale.server_wake." + name, "wake_up", 30L);
             }
             return;
         }

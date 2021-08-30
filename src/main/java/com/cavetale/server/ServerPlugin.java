@@ -52,6 +52,9 @@ public final class ServerPlugin extends JavaPlugin {
             slot.disable();
         }
         serverMap.clear();
+        if (serverTag.waitOnWake) {
+            Redis.del("cavetale.server_wake." + serverName);
+        }
     }
 
     public List<ServerSlot> getServerList() {
