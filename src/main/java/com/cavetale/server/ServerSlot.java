@@ -61,9 +61,13 @@ public final class ServerSlot implements Comparable<ServerSlot> {
                            .append(Component.text("Joining "))
                            .append(displayName)
                            .append(Component.text("...")));
-        Redis.set("cavetale.server_switch." + player.getUniqueId(), name, 60L);
-        Redis.del("cavetale.server_choice." + player.getUniqueId());
-        Bungee.send(player, name);
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+                Redis.set("cavetale.server_switch." + player.getUniqueId(), name, 10L);
+                Redis.del("cavetale.server_choice." + player.getUniqueId());
+                Bukkit.getScheduler().runTask(plugin, () -> {
+                        Bungee.send(plugin, player, name);
+                    });
+            });
     }
 
     protected void enable() {
