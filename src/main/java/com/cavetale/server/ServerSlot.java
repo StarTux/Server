@@ -1,6 +1,5 @@
 package com.cavetale.server;
 
-import com.cavetale.core.util.Json;
 import com.winthier.connect.Connect;
 import com.winthier.connect.Redis;
 import java.util.Collections;
@@ -62,9 +61,9 @@ public final class ServerSlot implements Comparable<ServerSlot> {
                            .append(Component.text("Joining "))
                            .append(displayName)
                            .append(Component.text("...")));
-        Connect.getInstance().broadcast("server:switch", Json.serialize(new ServerSwitchPacket(player.getUniqueId(), name)));
-        Bungee.send(player, name);
+        Redis.set("cavetale.server_switch." + player.getUniqueId(), name, 60L);
         Redis.del("cavetale.server_choice." + player.getUniqueId());
+        Bungee.send(player, name);
     }
 
     protected void enable() {
