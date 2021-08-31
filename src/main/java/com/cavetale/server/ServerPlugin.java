@@ -29,7 +29,7 @@ public final class ServerPlugin extends JavaPlugin {
     public void onEnable() {
         enabling = true;
         instance = this;
-        Bukkit.getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
+        Bungee.register(this);
         serverCommand.enable();
         serverAdminCommand.enable();
         eventListener.enable();
