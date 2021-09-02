@@ -24,7 +24,7 @@ public final class EventListener implements Listener {
     private void onConnectMessage(ConnectMessageEvent event) {
         switch (event.getMessage().getChannel()) {
         case "server:update":
-            ServerTag serverTag = ServerTag.fromJson(event.getMessage().getPayload().toString());
+            ServerTag serverTag = ServerTag.fromJson(event.getMessage().getPayload());
             if (serverTag.name != null && !serverTag.name.equals(plugin.serverName)) {
                 plugin.getLogger().info("Server update received: " + serverTag.name);
                 plugin.registerServer(serverTag);
@@ -32,8 +32,8 @@ public final class EventListener implements Listener {
             }
             break;
         case "server:remove":
-            plugin.getLogger().info("Server remove received: " + event.getMessage().getPayload().toString());
-            plugin.unregisterServer(event.getMessage().getPayload().toString());
+            plugin.getLogger().info("Server remove received: " + event.getMessage().getPayload());
+            plugin.unregisterServer(event.getMessage().getPayload());
             break;
         default: break;
         }
