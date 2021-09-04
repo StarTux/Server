@@ -1,9 +1,11 @@
 package com.cavetale.server;
 
+import com.cavetale.core.command.CommandArgCompleter;
 import com.cavetale.core.command.CommandNode;
 import com.cavetale.core.command.CommandWarn;
 import com.cavetale.core.util.Json;
 import com.cavetale.mytems.Mytems;
+import com.winthier.connect.Redis;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
@@ -56,6 +58,10 @@ public final class ServerAdminCommand implements TabExecutor {
                                            "material",
                                            "waitonwake"))
             .senderCaller(this::set);
+        rootNode.addChild("wakeup").arguments("<server>")
+            .description("Wake up server")
+            .completers(CommandArgCompleter.supplyList(() -> new ArrayList<>(plugin.serverMap.keySet())))
+            .senderCaller(this::wakeUp);
         plugin.getCommand("serveradmin").setExecutor(this);
     }
 
@@ -177,6 +183,14 @@ public final class ServerAdminCommand implements TabExecutor {
         plugin.registerServer(plugin.serverTag);
         plugin.storeThisServer();
         plugin.broadcastThisServer();
+        return true;
+    }
+
+    boolean wakeUp(CommandSender sender, String[] args) {
+        if (args.length != 1) return false;
+        String name = args[0];
+        Redis.lpush("cavetale.server_wake." + name, "wake_up", 30L);
+        sender.sendMessage(Component.text("Wake up signal sent to server " + name));
         return true;
     }
 }
