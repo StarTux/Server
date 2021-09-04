@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -41,9 +42,12 @@ public final class ServerSlot implements Comparable<ServerSlot> {
             player.sendMessage(Component.text("Server not available: " + name, NamedTextColor.RED));
             return;
         }
-        if (tag.locked && !player.hasPermission("server.locked")) {
-            player.sendMessage(Component.text("This server is locked!", NamedTextColor.RED));
-            return;
+        if (tag.locked) {
+            if (!player.hasPermission("server.locked")) {
+                player.sendMessage(Component.text("This server is locked!", NamedTextColor.RED));
+                return;
+            }
+            player.sendMessage(Component.text("Entering a locked server!", NamedTextColor.RED, TextDecoration.ITALIC));
         }
         if (!forceOnline && !Connect.getInstance().listServers().contains(name)) {
             player.sendMessage(Component.text()
