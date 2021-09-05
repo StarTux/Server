@@ -2,13 +2,17 @@ package com.cavetale.server;
 
 import com.winthier.connect.Connect;
 import com.winthier.connect.Redis;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -111,15 +115,25 @@ public final class ServerSlot implements Comparable<ServerSlot> {
             displayName = Component.text(name);
         }
         description = serverTag.parseDescription();
+        TextComponent.Builder tooltip = Component.text().append(displayName);
+        List<Component> attributes = new ArrayList<>();
+        if (tag.locked) {
+            attributes.add(Component.text("locked", TextColor.color(0xFF0000)));
+        }
+        if (tag.hidden) {
+            attributes.add(Component.text("hidden", TextColor.color(0xFF00FF)));
+        }
+        if (!attributes.isEmpty()) {
+            tooltip.append(Component.newline());
+            tooltip.append(Component.join(Component.text(" "), attributes).decorate(TextDecoration.ITALIC));
+        }
+        tooltip.append(Component.newline())
+            .append(Component.text("/" + name, NamedTextColor.GRAY));
+        tooltip.append(Component.newline())
+            .append(Component.join(Component.newline(), description.toArray(new Component[0])));
         component = Component.text()
             .append(displayName)
-            .hoverEvent(Component.text()
-                        .append(displayName)
-                        .append(Component.newline())
-                        .append(Component.text("/" + name, NamedTextColor.GRAY))
-                        .append(Component.newline())
-                        .append(Component.join(Component.newline(), description.toArray(new Component[0])))
-                        .build())
+            .hoverEvent(HoverEvent.showText(tooltip.build()))
             .clickEvent(ClickEvent.runCommand("/server " + name))
             .build();
         itemStack = serverTag.parseItemStack();
