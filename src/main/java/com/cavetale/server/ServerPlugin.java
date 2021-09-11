@@ -132,7 +132,7 @@ public final class ServerPlugin extends JavaPlugin {
             ServerTag tag = ServerTag.fromJson(json);
             if (tag.name == null) continue;
             registerServer(tag);
-            list.add(serverName);
+            list.add(tag.name);
         }
         // Remove missing servers
         for (String key : new ArrayList<>(serverMap.keySet())) {
