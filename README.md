@@ -34,7 +34,6 @@ will save and broadcast it.
 
 - `cavetale.server.<name>` A JSON representation of a ServerTag object
 - `cavetale.server_choice.<uuid>` (60s) When a player tried to switch to a server while it was down
-- `cavetale.server_switch.<uuid>` (10s) Set before, a player was sent to another server, read and deleted right after
 - `cavetale.server_wake.<server>` Message queue to wake up a sleeping server (lpush, brpop)
 
 ## Server Wait

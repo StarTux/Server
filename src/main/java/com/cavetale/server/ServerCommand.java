@@ -47,6 +47,7 @@ public final class ServerCommand implements TabExecutor {
         return plugin.getServerList().stream()
             .filter(slot -> slot.canSee(sender) && slot.hasPermission(sender))
             .map(slot -> slot.name)
+            .filter(name -> name.contains(args[0]))
             .collect(Collectors.toList());
     }
 

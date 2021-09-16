@@ -1,5 +1,7 @@
 package com.cavetale.server;
 
+import com.cavetale.core.event.player.PluginPlayerEvent.Detail;
+import com.cavetale.core.event.player.PluginPlayerEvent;
 import com.winthier.connect.Connect;
 import com.winthier.connect.Redis;
 import java.util.ArrayList;
@@ -59,23 +61,22 @@ public final class ServerSlot implements Comparable<ServerSlot> {
                                .append(displayName)
                                .append(Component.text(" is starting up..."))
                                .color(NamedTextColor.YELLOW));
-            Redis.set("cavetale.server_choice." + player.getUniqueId(), name, 60L);
-            if (tag.waitOnWake) {
-                Redis.lpush("cavetale.server_wake." + name, "wake_up", 30L);
-            }
+            Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+                    Redis.set("cavetale.server_choice." + player.getUniqueId(), name, 60L);
+                    if (tag.waitOnWake) {
+                        Redis.lpush("cavetale.server_wake." + name, "wake_up", 30L);
+                    }
+                });
             return;
         }
         player.sendMessage(Component.text().color(NamedTextColor.GREEN)
                            .append(Component.text("Joining "))
                            .append(displayName)
                            .append(Component.text("...")));
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-                Redis.set("cavetale.server_switch." + player.getUniqueId(), name, 10L);
-                Redis.del("cavetale.server_choice." + player.getUniqueId());
-                Bukkit.getScheduler().runTask(plugin, () -> {
-                        Bungee.send(plugin, player, name);
-                    });
-            });
+        PluginPlayerEvent.Name.SWITCH_SERVER.ultimate(plugin, player)
+            .detail(Detail.NAME, name)
+            .call();
+        Bungee.send(plugin, player, name);
     }
 
     protected void enable() {

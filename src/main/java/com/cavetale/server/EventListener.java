@@ -1,16 +1,10 @@
 package com.cavetale.server;
 
-import com.cavetale.core.event.player.PluginPlayerEvent;
-import com.winthier.connect.Redis;
 import com.winthier.connect.event.ConnectMessageEvent;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerJoinEvent;
 
 @RequiredArgsConstructor
 public final class EventListener implements Listener {
@@ -37,23 +31,5 @@ public final class EventListener implements Listener {
             break;
         default: break;
         }
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR)
-    void onPlayerJoin(PlayerJoinEvent event) {
-        final Player player = event.getPlayer();
-        final UUID uuid = player.getUniqueId();
-        final String redisKey = "cavetale.server_switch." + player.getUniqueId();
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-                String name = Redis.get(redisKey);
-                if (name == null || !name.equals(plugin.serverName)) return;
-                Redis.del(redisKey);
-                Bukkit.getScheduler().runTask(plugin, () -> {
-                        PluginPlayerEvent.Name.SWITCH_SERVER.ultimate(plugin, player)
-                            .detail(PluginPlayerEvent.Detail.NAME, plugin.serverName)
-                            .call();
-                        plugin.getLogger().info("Server switch: " + player.getName());
-                    });
-            });
     }
 }
