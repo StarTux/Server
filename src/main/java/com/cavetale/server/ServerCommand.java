@@ -1,5 +1,6 @@
 package com.cavetale.server;
 
+import com.cavetale.core.event.player.PluginPlayerEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -62,5 +63,8 @@ public final class ServerCommand implements TabExecutor {
             .append(Component.join(Component.text(", ", NamedTextColor.GRAY), list))
             .build();
         sender.sendMessage(message);
+        if (sender instanceof Player) {
+            PluginPlayerEvent.Name.VIEW_SERVER_LIST.call(plugin, (Player) sender);
+        }
     }
 }
