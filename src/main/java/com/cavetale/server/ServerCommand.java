@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -60,7 +61,7 @@ public final class ServerCommand implements TabExecutor {
         }
         Component message = Component.text()
             .content("Available servers: ").color(NamedTextColor.AQUA)
-            .append(Component.join(Component.text(", ", NamedTextColor.GRAY), list))
+            .append(Component.join(JoinConfiguration.separator(Component.text(", ", NamedTextColor.GRAY)), list))
             .build();
         sender.sendMessage(message);
         if (sender instanceof Player) {

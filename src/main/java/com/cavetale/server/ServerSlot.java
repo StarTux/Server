@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
@@ -126,12 +127,14 @@ public final class ServerSlot implements Comparable<ServerSlot> {
         }
         if (!attributes.isEmpty()) {
             tooltip.append(Component.newline());
-            tooltip.append(Component.join(Component.text(" "), attributes).decorate(TextDecoration.ITALIC));
+            tooltip.append(Component.join(JoinConfiguration.separator(Component.text(" ")),
+                                          attributes).decorate(TextDecoration.ITALIC));
         }
         tooltip.append(Component.newline())
             .append(Component.text("/" + name, NamedTextColor.GRAY));
         tooltip.append(Component.newline())
-            .append(Component.join(Component.newline(), description.toArray(new Component[0])));
+            .append(Component.join(JoinConfiguration.separator(Component.newline()),
+                                   description.toArray(new Component[0])));
         component = Component.text()
             .append(displayName)
             .hoverEvent(HoverEvent.showText(tooltip.build()))

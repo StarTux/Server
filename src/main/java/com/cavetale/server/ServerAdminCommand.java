@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -94,12 +95,13 @@ public final class ServerAdminCommand implements TabExecutor {
                         .hoverEvent(HoverEvent.showText(Component.text()
                                                         .append(slot.displayName)
                                                         .append(Component.newline())
-                                                        .append(Component.join(Component.newline(), slot.description.toArray(new Component[0])))))
+                                                        .append(Component.join(JoinConfiguration.separator(Component.newline()),
+                                                                               slot.description.toArray(new Component[0])))))
                         .clickEvent(ClickEvent.runCommand("/serveradmin info " + slot.name))
                         .build());
         }
         sender.sendMessage(Component.text().content(servers.size() + " servers: ").color(NamedTextColor.YELLOW)
-                           .append(Component.join(Component.text(", ", NamedTextColor.DARK_GRAY),
+                           .append(Component.join(JoinConfiguration.separator(Component.text(", ", NamedTextColor.DARK_GRAY)),
                                                   servers.toArray(new Component[0]))));
         return true;
     }
