@@ -1,5 +1,6 @@
 package com.cavetale.server;
 
+import com.cavetale.core.util.Json;
 import com.winthier.connect.Connect;
 import com.winthier.connect.Redis;
 import java.io.File;
@@ -8,13 +9,16 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import lombok.Getter;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class ServerPlugin extends JavaPlugin {
+    public static final String SERVER_SIDEBAR_PREFIX = "cavetale.server-sidebar.";
     @Getter protected static ServerPlugin instance;
     protected final ServerCommand serverCommand = new ServerCommand(this);
     protected final ServerAdminCommand serverAdminCommand = new ServerAdminCommand(this);
@@ -61,6 +65,22 @@ public final class ServerPlugin extends JavaPlugin {
         var result = new ArrayList<>(serverMap.values());
         Collections.sort(result);
         return result;
+    }
+
+    public void setServerSidebarLines(List<Component> lines) {
+        ServerSlot slot = serverMap.get(serverName);
+        if (slot == null) return;
+        if (Objects.equals(slot.sidebarLines, lines)) return;
+        slot.sidebarLines = lines;
+        ServerSidebarLines pack = new ServerSidebarLines(serverName, lines);
+        String serialized = Json.serialize(pack);
+        Connect.getInstance().broadcast("server:sidebar", serialized);
+        String redisKey = SERVER_SIDEBAR_PREFIX + serverName;
+        if (lines == null || lines.isEmpty()) {
+            Redis.del(redisKey);
+        } else {
+            Redis.set(redisKey, serialized, 60L);
+        }
     }
 
     protected void loadThisServer() {
@@ -142,6 +162,17 @@ public final class ServerPlugin extends JavaPlugin {
             if (list.contains(key)) continue;
             unregisterServer(key);
         }
+        // Load server infos
+        for (Map.Entry<String, ServerSlot> entry : serverMap.entrySet()) {
+            String key = entry.getKey();
+            ServerSlot slot = entry.getValue();
+            String value = Redis.get(SERVER_SIDEBAR_PREFIX + key);
+            ServerSidebarLines serverSidebarLines = Json.deserialize(value, ServerSidebarLines.class);
+            slot.sidebarLines = serverSidebarLines != null
+                ? serverSidebarLines.getComponents()
+                : null;
+        }
+        eventListener.updateSidebarLines();
     }
 
     protected void syncCommands() {

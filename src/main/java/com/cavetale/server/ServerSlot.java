@@ -39,6 +39,7 @@ public final class ServerSlot implements Comparable<ServerSlot> {
     protected List<Component> description;
     protected Component component;
     protected ItemStack itemStack;
+    protected List<Component> sidebarLines;
 
     public void tryToSwitch(Player player, boolean forceOnline) {
         if (name.equals(plugin.serverName)) {
