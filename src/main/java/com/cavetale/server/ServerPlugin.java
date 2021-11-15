@@ -28,6 +28,7 @@ public final class ServerPlugin extends JavaPlugin {
     protected ServerTag serverTag;
     protected boolean syncing;
     protected boolean enabling;
+    protected long sidebarLinesUpdated;
 
     @Override
     public void onEnable() {
@@ -67,19 +68,43 @@ public final class ServerPlugin extends JavaPlugin {
         return result;
     }
 
+    /**
+     * Set the sidebar lines of this server. This method can be
+     * spammed with identical contents and will only trigger an update
+     * once every 30 seconds or when necessary.
+     *
+     * The lines are broadcast via Connect (which uses Redis lpush)
+     * whenever the content changes.
+     *
+     * The content is stored in Redis for 10 minutes: If the content
+     * changed, or if the previous set operation is older than 60
+     * seconds.
+     *
+     * Other servers will receive the broadcast live, or load the
+     * Redis key alongside their 60 second loadOtherServers() refresh.
+     */
     public void setServerSidebarLines(List<Component> lines) {
         ServerSlot slot = serverMap.get(serverName);
         if (slot == null) return;
-        if (Objects.equals(slot.sidebarLines, lines)) return;
+        long now = System.currentTimeMillis();
+        boolean didChange = !Objects.equals(slot.sidebarLines, lines);
+        boolean broadcastRequired = didChange;
+        boolean redisRefreshRequired = didChange || sidebarLinesUpdated < now - 1000L * 60L;
+        if (!broadcastRequired && !redisRefreshRequired) return;
         slot.sidebarLines = lines;
         ServerSidebarLines pack = new ServerSidebarLines(serverName, lines);
         String serialized = Json.serialize(pack);
-        Connect.getInstance().broadcast("server:sidebar", serialized);
-        String redisKey = SERVER_SIDEBAR_PREFIX + serverName;
-        if (lines == null || lines.isEmpty()) {
-            Redis.del(redisKey);
-        } else {
-            Redis.set(redisKey, serialized, 60L);
+        if (broadcastRequired) {
+            Connect.getInstance().broadcast("server:sidebar", serialized);
+        }
+        if (redisRefreshRequired) {
+            sidebarLinesUpdated = now;
+            String redisKey = SERVER_SIDEBAR_PREFIX + serverName;
+            if (lines == null || lines.isEmpty()) {
+                Redis.del(redisKey);
+            } else {
+                Redis.set(redisKey, serialized, 600L);
+            }
         }
     }
 
