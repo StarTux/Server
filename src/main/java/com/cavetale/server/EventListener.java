@@ -10,6 +10,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -31,11 +32,16 @@ public final class EventListener implements Listener {
     @EventHandler(priority = EventPriority.LOW)
     private void onPlayerLogin(PlayerLoginEvent event) {
         ServerSlot slot = plugin.serverMap.get(plugin.serverName);
-        if (slot == null || slot.hasPermission(event.getPlayer())) return;
-        Component reason = Component.text("You're not whitelisted!");
-        event.disallow(PlayerLoginEvent.Result.KICK_WHITELIST, reason);
-        plugin.getLogger().info("Denying " + event.getPlayer().getName()
-                                + " for lack of permission " + slot.permission);
+        if (slot == null) return;
+        Player player = event.getPlayer();
+        if (slot.tag.locked && !player.hasPermission("server.locked")) {
+            event.disallow(PlayerLoginEvent.Result.KICK_WHITELIST, Component.text("Server is locked!"));
+            plugin.getLogger().info("Denying " + player.getName() + " because server is locked");
+        }
+        if (!slot.hasPermission(player)) {
+            event.disallow(PlayerLoginEvent.Result.KICK_WHITELIST, Component.text("You're not whitelisted!"));
+            plugin.getLogger().info("Denying " + player.getName() + " for lack of permission");
+        }
     }
 
     @EventHandler
