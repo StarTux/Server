@@ -11,7 +11,9 @@ import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerLoginEvent;
 
 @RequiredArgsConstructor
 public final class EventListener implements Listener {
@@ -20,6 +22,20 @@ public final class EventListener implements Listener {
 
     public void enable() {
         Bukkit.getPluginManager().registerEvents(this, plugin);
+    }
+
+    /**
+     * Deny login if they lack the permission.  This uses the LOW
+     * priority because PERM uses LOWEST to set up the permissions!
+     */
+    @EventHandler(priority = EventPriority.LOW)
+    private void onPlayerLogin(PlayerLoginEvent event) {
+        ServerSlot slot = plugin.serverMap.get(plugin.serverName);
+        if (slot == null || slot.hasPermission(event.getPlayer())) return;
+        Component reason = Component.text("You're not whitelisted!");
+        event.disallow(PlayerLoginEvent.Result.KICK_WHITELIST, reason);
+        plugin.getLogger().info("Denying " + event.getPlayer().getName()
+                                + " for lack of permission " + slot.permission);
     }
 
     @EventHandler
