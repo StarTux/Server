@@ -7,12 +7,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.JoinConfiguration;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
+import static net.kyori.adventure.text.Component.join;
+import static net.kyori.adventure.text.Component.text;
+import static net.kyori.adventure.text.JoinConfiguration.separator;
+import static net.kyori.adventure.text.format.NamedTextColor.*;
 
 @RequiredArgsConstructor
 public final class ServerCommand implements TabExecutor {
@@ -55,15 +57,19 @@ public final class ServerCommand implements TabExecutor {
 
     public void listServers(CommandSender sender) {
         List<Component> list = new ArrayList<>();
+        List<Component> hiddenList = new ArrayList<>();
         for (ServerSlot slot : plugin.getServerList()) {
             if (!slot.hasPermission(sender) || !slot.canSee(sender)) continue;
-            list.add(slot.component);
+            if (slot.tag.hidden || slot.tag.locked) {
+                hiddenList.add(slot.component);
+            } else {
+                list.add(slot.component);
+            }
         }
-        Component message = Component.text()
-            .content("Available servers: ").color(NamedTextColor.AQUA)
-            .append(Component.join(JoinConfiguration.separator(Component.text(", ", NamedTextColor.GRAY)), list))
-            .build();
-        sender.sendMessage(message);
+        sender.sendMessage(text("Available servers: ", AQUA).append(join(separator(text(", ", GRAY)), list)));
+        if (!hiddenList.isEmpty()) {
+            sender.sendMessage(text("Hidden or locked servers: ", RED).append(join(separator(text(", ", GRAY)), hiddenList)));
+        }
         if (sender instanceof Player) {
             PluginPlayerEvent.Name.VIEW_SERVER_LIST.call(plugin, (Player) sender);
         }

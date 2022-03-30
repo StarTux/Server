@@ -57,6 +57,13 @@ public final class ServerSlot implements Comparable<ServerSlot> {
             }
             player.sendMessage(Component.text("Entering a locked server!", NamedTextColor.RED, TextDecoration.ITALIC));
         }
+        if (tag.hidden) {
+            if (!player.hasPermission("server.hidden")) {
+                player.sendMessage(Component.text("This server is locked!", NamedTextColor.RED));
+                return;
+            }
+            player.sendMessage(Component.text("Entering a hidden server!", NamedTextColor.RED, TextDecoration.ITALIC));
+        }
         if (!forceOnline && !Connect.getInstance().listServers().contains(name)) {
             player.sendMessage(Component.text()
                                .append(Component.text("Please wait while "))
@@ -149,11 +156,13 @@ public final class ServerSlot implements Comparable<ServerSlot> {
     }
 
     public boolean hasPermission(CommandSender sender) {
+        if (sender == Bukkit.getConsoleSender()) return true;
         return sender.hasPermission(permission)
             || sender.hasPermission(WILDCARD_PERMISSION);
     }
 
     public boolean canSee(CommandSender sender) {
+        if (sender == Bukkit.getConsoleSender()) return true;
         return !tag.hidden || sender.hasPermission("server.hidden");
     }
 
