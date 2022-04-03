@@ -106,9 +106,11 @@ public final class ServerSlot implements Comparable<ServerSlot> {
     }
 
     protected void disable() {
-        command.unregister(Bukkit.getCommandMap());
-        removeCommand(name);
-        removeCommand("server:" + name);
+        if (command != null) {
+            command.unregister(Bukkit.getCommandMap());
+            removeCommand(name);
+            removeCommand("server:" + name);
+        }
     }
 
     private void removeCommand(String label) {
