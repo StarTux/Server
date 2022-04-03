@@ -32,7 +32,7 @@ public final class ServerSlot implements Comparable<ServerSlot> {
     public static final String WILDCARD_PERMISSION = "server.visit.*";
     private final ServerPlugin plugin;
     public final String name;
-    protected MyCommand command;
+    private MyCommand command;
     protected ServerTag tag;
     protected String permission;
     protected Component displayName;
@@ -96,10 +96,12 @@ public final class ServerSlot implements Comparable<ServerSlot> {
                                              PermissionDefault.FALSE);
             Bukkit.getPluginManager().addPermission(perm);
         }
-        command = new MyCommand();
-        command.setPermission(permission + ";" + WILDCARD_PERMISSION);
-        if (!Bukkit.getCommandMap().register("server", command)) {
-            plugin.getLogger().warning("/" + name + ": Command registration failed. Using fallback");
+        if (!name.equals(plugin.serverName)) {
+            command = new MyCommand();
+            command.setPermission(permission + ";" + WILDCARD_PERMISSION);
+            if (!Bukkit.getCommandMap().register("server", command)) {
+                plugin.getLogger().warning("/" + name + ": Command registration failed. Using fallback");
+            }
         }
     }
 
