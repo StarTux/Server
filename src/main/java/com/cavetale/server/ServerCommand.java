@@ -37,7 +37,7 @@ public final class ServerCommand implements TabExecutor {
             return true;
         }
         ServerSlot serverSlot = plugin.serverMap.get(args[0]);
-        if (serverSlot == null || !serverSlot.hasPermission(sender)) {
+        if (serverSlot == null || !serverSlot.shouldHaveCommand() || !serverSlot.hasPermission(sender)) {
             sender.sendMessage(Component.text("Server not found: " + args[0]));
             return true;
         }
@@ -49,7 +49,7 @@ public final class ServerCommand implements TabExecutor {
     public List<String> onTabComplete(final CommandSender sender, final Command command, final String alias, final String[] args) {
         if (args.length != 1) return Collections.emptyList();
         return plugin.getServerList().stream()
-            .filter(slot -> slot.canSee(sender) && slot.hasPermission(sender))
+            .filter(slot -> slot.shouldHaveCommand() && slot.canSee(sender) && slot.hasPermission(sender))
             .map(slot -> slot.name)
             .filter(name -> name.contains(args[0]))
             .collect(Collectors.toList());
@@ -59,7 +59,7 @@ public final class ServerCommand implements TabExecutor {
         List<Component> list = new ArrayList<>();
         List<Component> hiddenList = new ArrayList<>();
         for (ServerSlot slot : plugin.getServerList()) {
-            if (!slot.hasPermission(sender) || !slot.canSee(sender)) continue;
+            if (!slot.shouldHaveCommand() || !slot.hasPermission(sender) || !slot.canSee(sender)) continue;
             if (slot.tag.hidden || slot.tag.locked) {
                 hiddenList.add(slot.component);
             } else {

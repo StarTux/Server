@@ -179,6 +179,10 @@ public final class ServerSlot implements Comparable<ServerSlot> {
         return !tag.hidden || sender.hasPermission("server.hidden");
     }
 
+    public boolean shouldHaveCommand() {
+        return tag.command;
+    }
+
     @Override
     public int compareTo(ServerSlot other) {
         return Integer.compare(other.tag.priority, this.tag.priority);
