@@ -50,14 +50,15 @@ public final class ServerAdminCommand implements TabExecutor {
                              .collect(Collectors.toList()));
         rootNode.addChild("set").arguments("<key> <value>")
             .description("Change server settings")
-            .completableList(Arrays.asList("persistent",
-                                           "prio", "priority",
-                                           "locked",
-                                           "hidden",
-                                           "displayName",
-                                           "description",
-                                           "material",
-                                           "waitonwake"))
+            .completableList(List.of("persistent",
+                                     "prio", "priority",
+                                     "locked",
+                                     "hidden",
+                                     "displayName",
+                                     "description",
+                                     "material",
+                                     "waitonwake",
+                                     "command"))
             .senderCaller(this::set);
         rootNode.addChild("wakeup").arguments("<server>")
             .description("Wake up server")
@@ -145,7 +146,7 @@ public final class ServerAdminCommand implements TabExecutor {
             case "description": {
                 Component comp = Json.deserializeComponent(value);
                 value = Json.serializeComponent(comp);
-                plugin.serverTag.description = Arrays.asList(value);
+                plugin.serverTag.description = List.of(value);
                 break;
             }
             case "material": {
@@ -173,6 +174,9 @@ public final class ServerAdminCommand implements TabExecutor {
                 } else {
                     new File("WaitOnWake").delete();
                 }
+                break;
+            case "command":
+                plugin.serverTag.command = Boolean.parseBoolean(value);
                 break;
             default:
                 throw new CommandWarn("Invalid key: " + key);

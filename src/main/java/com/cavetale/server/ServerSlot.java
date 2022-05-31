@@ -82,9 +82,9 @@ public final class ServerSlot implements Comparable<ServerSlot> {
                            .append(Component.text("Joining "))
                            .append(displayName)
                            .append(Component.text("...")));
-        PluginPlayerEvent.Name.SWITCH_SERVER.ultimate(plugin, player)
+        PluginPlayerEvent.Name.SWITCH_SERVER.make(plugin, player)
             .detail(Detail.NAME, name)
-            .call();
+            .callEvent();
         Bungee.send(plugin, player, name);
     }
 
@@ -96,13 +96,6 @@ public final class ServerSlot implements Comparable<ServerSlot> {
                                              PermissionDefault.FALSE);
             Bukkit.getPluginManager().addPermission(perm);
         }
-        if (!name.equals(plugin.serverName)) {
-            command = new MyCommand();
-            command.setPermission(permission + ";" + WILDCARD_PERMISSION);
-            if (!Bukkit.getCommandMap().register("server", command)) {
-                plugin.getLogger().warning("/" + name + ": Command registration failed. Using fallback");
-            }
-        }
     }
 
     protected void disable() {
@@ -110,6 +103,8 @@ public final class ServerSlot implements Comparable<ServerSlot> {
             command.unregister(Bukkit.getCommandMap());
             removeCommand(name);
             removeCommand("server:" + name);
+            command = null;
+            plugin.syncCommands();
         }
     }
 
@@ -157,6 +152,20 @@ public final class ServerSlot implements Comparable<ServerSlot> {
                 meta.displayName(displayName);
                 meta.lore(description);
             });
+        if (command == null && tag.command && !name.equals(plugin.serverName)) {
+            command = new MyCommand();
+            command.setPermission(permission + ";" + WILDCARD_PERMISSION);
+            if (!Bukkit.getCommandMap().register("server", command)) {
+                plugin.getLogger().warning("/" + name + ": Command registration failed. Using fallback");
+            }
+            plugin.syncCommands();
+        } else if (command != null && (!tag.command || name.equals(plugin.serverName))) {
+            command.unregister(Bukkit.getCommandMap());
+            removeCommand(name);
+            removeCommand("server:" + name);
+            command = null;
+            plugin.syncCommands();
+        }
     }
 
     public boolean hasPermission(CommandSender sender) {

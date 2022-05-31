@@ -28,6 +28,7 @@ public final class ServerPlugin extends JavaPlugin {
     protected ServerTag serverTag;
     protected boolean syncing;
     protected boolean enabling;
+    protected boolean disabling;
     protected long sidebarLinesUpdated;
 
     @Override
@@ -49,6 +50,7 @@ public final class ServerPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        disabling = true;
         if (!serverTag.persistent) {
             Redis.del("cavetale.server." + serverTag.name);
             Connect.getInstance().broadcast("server:remove", serverTag.name);
@@ -60,6 +62,7 @@ public final class ServerPlugin extends JavaPlugin {
         if (serverTag.waitOnWake) {
             Redis.del("cavetale.server_wake." + serverName);
         }
+        syncCommandsNow();
     }
 
     public List<ServerSlot> getServerList() {
@@ -155,7 +158,6 @@ public final class ServerPlugin extends JavaPlugin {
             getLogger().info("Registering server " + tag.name);
             slot.enable();
             serverMap.put(tag.name, slot);
-            syncCommands();
         }
     }
 
@@ -201,17 +203,19 @@ public final class ServerPlugin extends JavaPlugin {
     }
 
     protected void syncCommands() {
-        if (enabling || syncing) return;
+        if (enabling || disabling || syncing) return;
         syncing = true;
-        Bukkit.getScheduler().runTask(this, () -> {
-                syncing = false;
-                getLogger().info("Syncing commands");
-                try {
-                    getServer().getClass().getMethod("syncCommands").invoke(getServer());
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            });
+        Bukkit.getScheduler().runTask(this, this::syncCommandsNow);
+    }
+
+    private void syncCommandsNow() {
+        syncing = false;
+        getLogger().info("Syncing commands");
+        try {
+            getServer().getClass().getMethod("syncCommands").invoke(getServer());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     protected void serverUpdateReceived(ServerTag tag) {
