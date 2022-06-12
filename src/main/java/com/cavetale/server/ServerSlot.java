@@ -86,6 +86,7 @@ public final class ServerSlot implements Comparable<ServerSlot> {
             .detail(Detail.NAME, name)
             .callEvent();
         Bungee.send(plugin, player, name);
+        Redis.del("cavetale.server_choice." + player.getUniqueId());
     }
 
     protected void enable() {
