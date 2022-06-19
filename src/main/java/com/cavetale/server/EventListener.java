@@ -1,8 +1,8 @@
 package com.cavetale.server;
 
+import com.cavetale.core.event.hud.PlayerHudEvent;
+import com.cavetale.core.event.hud.PlayerHudPriority;
 import com.cavetale.core.util.Json;
-import com.cavetale.sidebar.PlayerSidebarEvent;
-import com.cavetale.sidebar.Priority;
 import com.winthier.connect.event.ConnectMessageEvent;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -15,6 +15,11 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerLoginEvent;
+import static com.cavetale.core.font.Unicode.tiny;
+import static net.kyori.adventure.text.Component.join;
+import static net.kyori.adventure.text.Component.text;
+import static net.kyori.adventure.text.JoinConfiguration.noSeparators;
+import static net.kyori.adventure.text.format.NamedTextColor.*;
 
 @RequiredArgsConstructor
 public final class EventListener implements Listener {
@@ -74,9 +79,14 @@ public final class EventListener implements Listener {
     }
 
     @EventHandler
-    private void onPlayerSidebar(PlayerSidebarEvent event) {
-        if (sidebarLines.isEmpty()) return;
-        event.add(plugin, Priority.LOW, sidebarLines);
+    private void onPlayerHud(PlayerHudEvent event) {
+        if (!sidebarLines.isEmpty()) {
+            event.sidebar(PlayerHudPriority.INFO, sidebarLines);
+        }
+        if (plugin.serverSlot != null) {
+            event.header(PlayerHudPriority.HIGHEST,
+                         List.of(join(noSeparators(), text(tiny("server "), GRAY), plugin.serverSlot.displayName)));
+        }
     }
 
     protected void updateSidebarLines() {

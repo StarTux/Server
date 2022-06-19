@@ -26,6 +26,7 @@ public final class ServerPlugin extends JavaPlugin {
     protected final Map<String, ServerSlot> serverMap = new HashMap<>();
     protected String serverName;
     protected ServerTag serverTag;
+    protected ServerSlot serverSlot;
     protected boolean syncing;
     protected boolean enabling;
     protected boolean disabling;
@@ -120,7 +121,7 @@ public final class ServerPlugin extends JavaPlugin {
         if (new File("WaitOnWake").exists()) {
             serverTag.waitOnWake = true;
         }
-        registerServer(serverTag);
+        serverSlot = registerServer(serverTag);
         storeThisServer();
         broadcastThisServer();
     }
@@ -146,7 +147,7 @@ public final class ServerPlugin extends JavaPlugin {
         Connect.getInstance().broadcast("server:update", serverTag.toJson());
     }
 
-    protected void registerServer(ServerTag tag) {
+    protected ServerSlot registerServer(ServerTag tag) {
         ServerSlot slot = serverMap.get(tag.name);
         boolean isNew = false;
         if (slot == null) {
@@ -159,6 +160,7 @@ public final class ServerPlugin extends JavaPlugin {
             slot.enable();
             serverMap.put(tag.name, slot);
         }
+        return slot;
     }
 
     protected void unregisterServer(String name) {

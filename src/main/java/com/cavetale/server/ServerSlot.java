@@ -26,6 +26,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.plugin.Plugin;
+import static net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText;
 
 @RequiredArgsConstructor
 public final class ServerSlot implements Comparable<ServerSlot> {
@@ -36,6 +37,7 @@ public final class ServerSlot implements Comparable<ServerSlot> {
     protected ServerTag tag;
     protected String permission;
     protected Component displayName;
+    protected String flatDisplayName;
     protected List<Component> description;
     protected Component component;
     protected ItemStack itemStack;
@@ -124,6 +126,7 @@ public final class ServerSlot implements Comparable<ServerSlot> {
         if (Objects.equals(displayName, Component.empty())) {
             displayName = Component.text(name);
         }
+        flatDisplayName = plainText().serialize(displayName);
         description = serverTag.parseDescription();
         TextComponent.Builder tooltip = Component.text().append(displayName);
         List<Component> attributes = new ArrayList<>();
