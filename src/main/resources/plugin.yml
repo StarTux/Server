@@ -25,6 +25,12 @@ commands:
     permission: server.admin
     usage: '/serveradmin'
 
+  who:
+    aliases: [ list, ls, online ]
+    permission: server.who
+    description: List players on all servers
+    usage: /who
+
 permissions:
 
   server.server:
@@ -46,3 +52,7 @@ permissions:
   server.visit.*:
     description: Visit any server
     default: false
+
+  server.who:
+    description: Use /who
+    default: op

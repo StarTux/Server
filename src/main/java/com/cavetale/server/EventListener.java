@@ -1,5 +1,6 @@
 package com.cavetale.server;
 
+import com.cavetale.core.connect.Connect;
 import com.cavetale.core.event.hud.PlayerHudEvent;
 import com.cavetale.core.event.hud.PlayerHudPriority;
 import com.cavetale.core.util.Json;
@@ -16,6 +17,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerLoginEvent;
 import static com.cavetale.core.font.Unicode.tiny;
+import static net.kyori.adventure.text.Component.empty;
 import static net.kyori.adventure.text.Component.join;
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.JoinConfiguration.noSeparators;
@@ -83,10 +85,9 @@ public final class EventListener implements Listener {
         if (!sidebarLines.isEmpty()) {
             event.sidebar(PlayerHudPriority.INFO, sidebarLines);
         }
-        if (plugin.serverSlot != null) {
-            event.header(PlayerHudPriority.HIGHEST,
-                         List.of(join(noSeparators(), text(tiny("server "), GRAY), plugin.serverSlot.displayName)));
-        }
+        event.header(PlayerHudPriority.HIGHEST,
+                     List.of(join(noSeparators(), text(tiny("server "), GRAY), (plugin.serverSlot != null ? plugin.serverSlot.displayName : empty())),
+                             join(noSeparators(), text(tiny("players "), GRAY), text(Connect.get().getOnlinePlayerCount(), WHITE))));
     }
 
     protected void updateSidebarLines() {

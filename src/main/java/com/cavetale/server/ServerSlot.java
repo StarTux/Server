@@ -1,5 +1,6 @@
 package com.cavetale.server;
 
+import com.cavetale.core.command.RemotePlayer;
 import com.cavetale.core.event.player.PluginPlayerEvent.Detail;
 import com.cavetale.core.event.player.PluginPlayerEvent;
 import com.winthier.connect.Connect;
@@ -42,6 +43,7 @@ public final class ServerSlot implements Comparable<ServerSlot> {
     protected Component component;
     protected ItemStack itemStack;
     protected List<Component> sidebarLines;
+    protected List<RemotePlayer> onlinePlayers = new ArrayList<>();
 
     public void tryToSwitch(Player player, boolean forceOnline) {
         if (name.equals(plugin.serverName)) {
@@ -181,6 +183,10 @@ public final class ServerSlot implements Comparable<ServerSlot> {
     public boolean canSee(CommandSender sender) {
         if (sender == Bukkit.getConsoleSender()) return true;
         return !tag.hidden || sender.hasPermission("server.hidden");
+    }
+
+    public boolean canJoin(CommandSender sender) {
+        return !tag.locked || sender.hasPermission("server.locked");
     }
 
     public boolean shouldHaveCommand() {

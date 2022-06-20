@@ -21,6 +21,7 @@ public final class ServerPlugin extends JavaPlugin {
     public static final String SERVER_SIDEBAR_PREFIX = "cavetale.server-sidebar.";
     @Getter protected static ServerPlugin instance;
     protected final ServerCommand serverCommand = new ServerCommand(this);
+    protected final WhoCommand whoCommand = new WhoCommand(this);
     protected final ServerAdminCommand serverAdminCommand = new ServerAdminCommand(this);
     protected final EventListener eventListener = new EventListener(this);
     protected final Map<String, ServerSlot> serverMap = new HashMap<>();
@@ -38,6 +39,7 @@ public final class ServerPlugin extends JavaPlugin {
         instance = this;
         Bungee.register(this);
         serverCommand.enable();
+        whoCommand.enable();
         serverAdminCommand.enable();
         eventListener.enable();
         loadThisServer();
