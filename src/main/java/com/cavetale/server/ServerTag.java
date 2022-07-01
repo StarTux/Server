@@ -17,6 +17,7 @@ import org.bukkit.inventory.ItemStack;
 @Data
 public final class ServerTag {
     protected String name;
+    protected String commandName;
     protected boolean persistent;
     protected int priority;
     protected boolean locked;

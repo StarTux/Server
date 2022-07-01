@@ -58,7 +58,8 @@ public final class ServerAdminCommand implements TabExecutor {
                                      "description",
                                      "material",
                                      "waitonwake",
-                                     "command"))
+                                     "command",
+                                     "commandname"))
             .senderCaller(this::set);
         rootNode.addChild("wakeup").arguments("<server>")
             .description("Wake up server")
@@ -176,8 +177,9 @@ public final class ServerAdminCommand implements TabExecutor {
                 }
                 break;
             case "command":
-                plugin.serverTag.command = Boolean.parseBoolean(value);
+                plugin.serverTag.commandName = value;
                 break;
+            case "commandname":
             default:
                 throw new CommandWarn("Invalid key: " + key);
             }

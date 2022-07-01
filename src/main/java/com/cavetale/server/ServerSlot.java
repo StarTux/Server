@@ -34,6 +34,7 @@ public final class ServerSlot implements Comparable<ServerSlot> {
     public static final String WILDCARD_PERMISSION = "server.visit.*";
     private final ServerPlugin plugin;
     public final String name;
+    private String commandName;
     private MyCommand command;
     protected ServerTag tag;
     protected String permission;
@@ -51,7 +52,7 @@ public final class ServerSlot implements Comparable<ServerSlot> {
             return;
         }
         if (!hasPermission(player)) {
-            player.sendMessage(Component.text("Server not available: " + name, NamedTextColor.RED));
+            player.sendMessage(Component.text("Server not available: " + commandName, NamedTextColor.RED));
             return;
         }
         if (tag.locked) {
@@ -104,16 +105,28 @@ public final class ServerSlot implements Comparable<ServerSlot> {
     }
 
     protected void disable() {
-        if (command != null) {
-            command.unregister(Bukkit.getCommandMap());
-            removeCommand(name);
-            removeCommand("server:" + name);
-            command = null;
-            plugin.syncCommands();
-        }
+        removeCommand();
     }
 
-    private void removeCommand(String label) {
+    private void createCommand() {
+        command = new MyCommand();
+        command.setPermission(permission + ";" + WILDCARD_PERMISSION);
+        if (!Bukkit.getCommandMap().register("server", command)) {
+            plugin.getLogger().warning("/" + commandName + ": Command registration failed. Using fallback");
+        }
+        plugin.syncCommands();
+    }
+
+    private void removeCommand() {
+        if (command == null) return;
+        command.unregister(Bukkit.getCommandMap());
+        removeCommandMap(command.getName());
+        removeCommandMap("server:" + command.getName());
+        command = null;
+        plugin.syncCommands();
+    }
+
+    private void removeCommandMap(String label) {
         if (Bukkit.getCommandMap().getKnownCommands().get(label) == command) {
             Bukkit.getCommandMap().getKnownCommands().remove(label);
         }
@@ -123,6 +136,9 @@ public final class ServerSlot implements Comparable<ServerSlot> {
         if (!Objects.equals(name, serverTag.name)) {
             throw new IllegalArgumentException("name != " + serverTag);
         }
+        this.commandName = serverTag.getCommandName() != null && !serverTag.getCommandName().isEmpty()
+            ? serverTag.getCommandName()
+            : name;
         this.tag = serverTag;
         displayName = serverTag.parseDisplayName();
         if (Objects.equals(displayName, Component.empty())) {
@@ -144,33 +160,27 @@ public final class ServerSlot implements Comparable<ServerSlot> {
                                           attributes).decorate(TextDecoration.ITALIC));
         }
         tooltip.append(Component.newline())
-            .append(Component.text("/" + name, NamedTextColor.GRAY));
+            .append(Component.text("/" + commandName, NamedTextColor.GRAY));
         tooltip.append(Component.newline())
             .append(Component.join(JoinConfiguration.separator(Component.newline()),
                                    description.toArray(new Component[0])));
         component = Component.text()
             .append(displayName)
             .hoverEvent(HoverEvent.showText(tooltip.build()))
-            .clickEvent(ClickEvent.runCommand("/server " + name))
+            .clickEvent(ClickEvent.runCommand("/server " + commandName))
             .build();
         itemStack = serverTag.parseItemStack();
         itemStack.editMeta(meta -> {
                 meta.displayName(displayName);
                 meta.lore(description);
             });
+        if (command != null && !command.getName().equals(commandName)) {
+            removeCommand();
+        }
         if (command == null && tag.command && !name.equals(plugin.serverName)) {
-            command = new MyCommand();
-            command.setPermission(permission + ";" + WILDCARD_PERMISSION);
-            if (!Bukkit.getCommandMap().register("server", command)) {
-                plugin.getLogger().warning("/" + name + ": Command registration failed. Using fallback");
-            }
-            plugin.syncCommands();
+            createCommand();
         } else if (command != null && (!tag.command || name.equals(plugin.serverName))) {
-            command.unregister(Bukkit.getCommandMap());
-            removeCommand(name);
-            removeCommand("server:" + name);
-            command = null;
-            plugin.syncCommands();
+            removeCommand();
         }
     }
 
@@ -201,8 +211,8 @@ public final class ServerSlot implements Comparable<ServerSlot> {
     final class MyCommand extends Command implements PluginIdentifiableCommand {
         MyCommand() {
             super(name,
-                  "Switch to " + name, // description
-                  "Usage: /" + name, // usageMessage
+                  "Switch to " + commandName, // description
+                  "Usage: /" + commandName, // usageMessage
                   Collections.emptyList()); // aliases
         }
 
@@ -216,7 +226,7 @@ public final class ServerSlot implements Comparable<ServerSlot> {
             if (args.length != 0) return false;
             Player player = sender instanceof Player ? (Player) sender : null;
             if (player == null) {
-                sender.sendMessage("[server:" + name + "] Player expected");
+                sender.sendMessage("[server:" + commandName + "] Player expected");
                 return true;
             }
             tryToSwitch(player, false);
