@@ -177,9 +177,11 @@ public final class ServerAdminCommand implements TabExecutor {
                 }
                 break;
             case "command":
-                plugin.serverTag.commandName = value;
+                plugin.serverTag.command = Boolean.parseBoolean(value);
                 break;
             case "commandname":
+                plugin.serverTag.commandName = value;
+                break;
             default:
                 throw new CommandWarn("Invalid key: " + key);
             }
