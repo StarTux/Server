@@ -210,7 +210,7 @@ public final class ServerSlot implements Comparable<ServerSlot> {
 
     final class MyCommand extends Command implements PluginIdentifiableCommand {
         MyCommand() {
-            super(name,
+            super(commandName,
                   "Switch to " + commandName, // description
                   "Usage: /" + commandName, // usageMessage
                   Collections.emptyList()); // aliases
