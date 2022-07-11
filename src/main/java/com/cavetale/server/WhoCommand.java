@@ -58,7 +58,7 @@ public final class WhoCommand extends AbstractCommand<ServerPlugin> {
             totalCount += playerList.size();
             Component nameComponent = join(noSeparators(),
                                            slot.displayName,
-                                           text("(", GRAY),
+                                           text(" (", GRAY),
                                            text("" + playerList.size(), WHITE),
                                            text(")", GRAY));
             if (slot.canJoin(sender) && slot.tag.command) {
@@ -85,6 +85,9 @@ public final class WhoCommand extends AbstractCommand<ServerPlugin> {
                            space(),
                            join(separator(text(", ", GRAY)), playerNames)));
         }
-        sender.sendMessage(join(separator(newline()), lines));
+        sender.sendMessage(join(noSeparators(),
+                                text("Player List (", GRAY), text(totalCount), text(")", GRAY),
+                                newline(),
+                                join(separator(newline()), lines)));
     }
 }
