@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
@@ -43,11 +44,8 @@ public final class ServerPlugin extends JavaPlugin {
         serverAdminCommand.enable();
         eventListener.enable();
         loadThisServer();
-        loadOtherServers();
-        long storeServerInterval = 60L * 20L; // 1 minute
-        long loadServerInterval = 60L * 20L; // 1 minute
-        Bukkit.getScheduler().runTaskTimer(this, this::storeThisServer, storeServerInterval, storeServerInterval);
-        Bukkit.getScheduler().runTaskTimer(this, this::loadOtherServers, loadServerInterval, loadServerInterval);
+        Bukkit.getScheduler().runTaskTimer(this, this::storeThisServer, 60L * 20L, 60L * 20L);
+        Bukkit.getScheduler().runTaskTimer(this, this::loadOtherServers, 0L, 60L * 20L);
         enabling = false;
     }
 
@@ -106,11 +104,13 @@ public final class ServerPlugin extends JavaPlugin {
         if (redisRefreshRequired) {
             sidebarLinesUpdated = now;
             String redisKey = SERVER_SIDEBAR_PREFIX + serverName;
-            if (lines == null || lines.isEmpty()) {
-                Redis.del(redisKey);
-            } else {
-                Redis.set(redisKey, serialized, 600L);
-            }
+            Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
+                    if (lines == null || lines.isEmpty()) {
+                        Redis.del(redisKey);
+                    } else {
+                        Redis.set(redisKey, serialized, 600L);
+                    }
+                });
         }
     }
 
@@ -138,8 +138,12 @@ public final class ServerPlugin extends JavaPlugin {
      * Put in Redis storage.
      */
     protected void storeThisServer() {
-        String key = "cavetale.server." + serverTag.name;
-        Redis.set(key, serverTag.toJson(), serverTag.persistent ? 0L : 60L * 5L);
+        final String key = "cavetale.server." + serverTag.name;
+        final String json = serverTag.toJson();
+        final boolean persist = serverTag.persistent;
+        Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
+                Redis.set(key, json, persist ? 0L : 60L * 5L);
+            });
     }
 
     /**
@@ -173,37 +177,43 @@ public final class ServerPlugin extends JavaPlugin {
     }
 
     protected void loadOtherServers() {
-        Set<String> allKeys = Redis.keys("cavetale.server.*");
-        List<String> list = new ArrayList<>();
-        for (String redisKey : allKeys) {
-            String theServerName = redisKey.substring(16);
-            if (serverName.equals(theServerName)) continue;
-            String json = Redis.get(redisKey);
-            if (json == null) continue;
-            ServerTag tag = ServerTag.fromJson(json);
-            if (tag.name == null) continue;
-            registerServer(tag);
-            list.add(tag.name);
-        }
-        // Remove missing servers
-        for (String key : new ArrayList<>(serverMap.keySet())) {
-            if (key.equals(serverName)) continue;
-            ServerSlot slot = serverMap.get(key);
-            if (slot == null || slot.tag.persistent) continue;
-            if (list.contains(key)) continue;
-            unregisterServer(key);
-        }
-        // Load server infos
-        for (Map.Entry<String, ServerSlot> entry : serverMap.entrySet()) {
-            String key = entry.getKey();
-            ServerSlot slot = entry.getValue();
-            String value = Redis.get(SERVER_SIDEBAR_PREFIX + key);
-            ServerSidebarLines serverSidebarLines = Json.deserialize(value, ServerSidebarLines.class);
-            slot.sidebarLines = serverSidebarLines != null
-                ? serverSidebarLines.getComponents()
-                : null;
-        }
-        eventListener.updateSidebarLines();
+        Bukkit.getServer().getScheduler().runTaskAsynchronously(this, () -> {
+                // async
+                Set<String> allKeys = Redis.keys("cavetale.server.*");
+                Bukkit.getServer().getScheduler().runTask(this, () -> {
+                        // sync
+                        List<String> list = new ArrayList<>();
+                        for (String redisKey : allKeys) {
+                            String theServerName = redisKey.substring(16);
+                            if (serverName.equals(theServerName)) continue;
+                            String json = Redis.get(redisKey);
+                            if (json == null) continue;
+                            ServerTag tag = ServerTag.fromJson(json);
+                            if (tag.name == null) continue;
+                            registerServer(tag);
+                            list.add(tag.name);
+                        }
+                        // Remove missing servers
+                        for (String key : new ArrayList<>(serverMap.keySet())) {
+                            if (key.equals(serverName)) continue;
+                            ServerSlot slot = serverMap.get(key);
+                            if (slot == null || slot.tag.persistent) continue;
+                            if (list.contains(key)) continue;
+                            unregisterServer(key);
+                        }
+                        // Load server infos
+                        for (Map.Entry<String, ServerSlot> entry : serverMap.entrySet()) {
+                            String key = entry.getKey();
+                            ServerSlot slot = entry.getValue();
+                            String value = Redis.get(SERVER_SIDEBAR_PREFIX + key);
+                            ServerSidebarLines serverSidebarLines = Json.deserialize(value, ServerSidebarLines.class);
+                            slot.sidebarLines = serverSidebarLines != null
+                                ? serverSidebarLines.getComponents()
+                                : null;
+                        }
+                        eventListener.updateSidebarLines();
+                    });
+            });
     }
 
     protected void syncCommands() {
@@ -225,11 +235,23 @@ public final class ServerPlugin extends JavaPlugin {
     protected void serverUpdateReceived(ServerTag tag) {
         ServerSlot slot = serverMap.get(tag.name);
         if (slot == null) return;
+        List<UUID> uuids = new ArrayList<>();
         for (Player player : Bukkit.getOnlinePlayers()) {
-            String choice = Redis.get("cavetale.server_choice." + player.getUniqueId());
-            if (choice != null && slot.name.equals(choice)) {
-                slot.tryToSwitch(player, true);
-            }
+            uuids.add(player.getUniqueId());
         }
+        final String name = slot.name;
+        Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
+                for (UUID uuid : uuids) {
+                    String choice = Redis.get("cavetale.server_choice." + uuid);
+                    if (choice != null && name.equals(choice)) {
+                        Bukkit.getScheduler().runTask(this, () -> {
+                                Player player = Bukkit.getPlayer(uuid);
+                                if (player != null) {
+                                    slot.tryToSwitch(player, true);
+                                }
+                            });
+                    }
+                }
+            });
     }
 }
