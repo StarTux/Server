@@ -3,6 +3,7 @@ package com.cavetale.server;
 import com.cavetale.core.connect.Connect;
 import com.cavetale.core.event.hud.PlayerHudEvent;
 import com.cavetale.core.event.hud.PlayerHudPriority;
+import com.cavetale.core.font.DefaultFont;
 import com.cavetale.core.util.Json;
 import com.winthier.connect.event.ConnectMessageEvent;
 import java.util.ArrayList;
@@ -86,7 +87,8 @@ public final class EventListener implements Listener {
             event.sidebar(PlayerHudPriority.INFO, sidebarLines);
         }
         event.header(PlayerHudPriority.HIGHEST,
-                     List.of(join(noSeparators(), text(tiny("server "), GRAY), (plugin.serverSlot != null ? plugin.serverSlot.displayName : empty())),
+                     List.of(DefaultFont.CAVETALE.forPlayer(event.getPlayer()),
+                             join(noSeparators(), text(tiny("server "), GRAY), (plugin.serverSlot != null ? plugin.serverSlot.displayName : empty())),
                              join(noSeparators(), text(tiny("players "), GRAY), text(Connect.get().getOnlinePlayerCount(), WHITE))));
     }
 
