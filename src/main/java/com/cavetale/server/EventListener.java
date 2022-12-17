@@ -7,6 +7,7 @@ import com.cavetale.core.event.hud.PlayerHudPriority;
 import com.cavetale.core.font.DefaultFont;
 import com.cavetale.core.util.Json;
 import com.winthier.connect.event.ConnectMessageEvent;
+import com.winthier.title.TitlePlugin;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -36,7 +37,7 @@ public final class EventListener implements Listener {
 
     public void enable() {
         Bukkit.getPluginManager().registerEvents(this, plugin);
-        Bukkit.getScheduler().runTaskTimer(plugin, this::makeWhoLines, 0L, 20L);
+        Bukkit.getScheduler().runTaskTimer(plugin, this::makeWhoLines, 0L, 1L);
     }
 
     /**
@@ -104,7 +105,7 @@ public final class EventListener implements Listener {
             Component nameComponent = textOfChildren(text(subscript(slot.flatDisplayName.toLowerCase() + "(" + playerList.size() + ")"), GRAY));
             List<Component> playerNames = new ArrayList<>();
             for (RemotePlayer online : playerList) {
-                playerNames.add(text(online.getName()));
+                playerNames.add(TitlePlugin.getPlayerListName(online.getUniqueId()));
             }
             whoLines.add(textOfChildren(nameComponent, space(), join(separator(space()), playerNames)));
         }
