@@ -19,7 +19,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerLoginEvent;
-import static com.cavetale.core.font.Unicode.subscript;
 import static com.cavetale.core.font.Unicode.tiny;
 import static net.kyori.adventure.text.Component.empty;
 import static net.kyori.adventure.text.Component.join;
@@ -90,25 +89,13 @@ public final class EventListener implements Listener {
 
     private void makeWhoLines() {
         whoLines.clear();
-        for (ServerSlot slot : plugin.serverMap.values()) {
-            slot.onlinePlayers.clear();
+        List<RemotePlayer> playerList = new ArrayList<>(Connect.get().getRemotePlayers());
+        Collections.sort(playerList, (a, b) -> String.CASE_INSENSITIVE_ORDER.compare(a.getName(), b.getName()));
+        List<Component> playerNames = new ArrayList<>();
+        for (RemotePlayer online : playerList) {
+            playerNames.add(TitlePlugin.getPlayerListName(online.getUniqueId()));
         }
-        for (RemotePlayer remote : Connect.get().getRemotePlayers()) {
-            ServerSlot slot = plugin.serverMap.get(remote.getOriginServerName());
-            if (slot == null) continue;
-            slot.onlinePlayers.add(remote);
-        }
-        for (ServerSlot slot : plugin.getServerList()) {
-            List<RemotePlayer> playerList = slot.onlinePlayers;
-            if (playerList.size() == 0) continue;
-            Collections.sort(playerList, (a, b) -> String.CASE_INSENSITIVE_ORDER.compare(a.getName(), b.getName()));
-            Component nameComponent = textOfChildren(text(subscript(slot.flatDisplayName.toLowerCase() + "(" + playerList.size() + ")"), GRAY));
-            List<Component> playerNames = new ArrayList<>();
-            for (RemotePlayer online : playerList) {
-                playerNames.add(TitlePlugin.getPlayerListName(online.getUniqueId()));
-            }
-            whoLines.add(textOfChildren(nameComponent, space(), join(separator(space()), playerNames)));
-        }
+        whoLines.add(join(separator(space()), playerNames));
     }
 
     @EventHandler
