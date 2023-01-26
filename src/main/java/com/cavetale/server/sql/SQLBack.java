@@ -43,6 +43,6 @@ public final class SQLBack implements SQLRow {
     }
 
     public BackLocation toBackLocation() {
-        return new BackLocation(player, NetworkServer.of(server), plugin, world, x, y, z, yaw, pitch, description);
+        return new BackLocation(player, NetworkServer.of(server), plugin, world, x, y, z, pitch, yaw, description);
     }
 }
