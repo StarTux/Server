@@ -9,6 +9,7 @@ import com.cavetale.core.event.connect.ConnectMessageEvent;
 import com.cavetale.core.util.Json;
 import com.cavetale.server.ServerPlugin;
 import com.cavetale.server.sql.SQLBack;
+import java.util.HashMap;
 import java.util.UUID;
 import java.util.function.Consumer;
 import org.bukkit.Bukkit;
@@ -19,6 +20,7 @@ import static com.cavetale.server.ServerPlugin.database;
 
 public final class ServerBackProvider implements BackProvider, Listener {
     private static final String BACK = "server:back";
+    private HashMap<UUID, Long> cooldowns = new HashMap<>();
 
     public void enable() {
         register();
@@ -27,6 +29,11 @@ public final class ServerBackProvider implements BackProvider, Listener {
 
     @Override
     public void store(BackLocation backLocation) {
+        // If this store is dont shortly after a back request, we
+        // assume that it was caused by the player leaving, thus we
+        // impose a cooldown to avoid flip-flopping.
+        Long cd = cooldowns.remove(backLocation.getPlayerUuid());
+        if (cd != null && cd > System.currentTimeMillis()) return;
         database().saveAsync(new SQLBack().load(backLocation), null);
     }
 
@@ -61,9 +68,13 @@ public final class ServerBackProvider implements BackProvider, Listener {
 
     @Override
     public void back(UUID playerUuid, Consumer<BackLocation> callback) {
+        cooldowns.put(playerUuid, System.currentTimeMillis() + 10_000L);
         load(playerUuid, backLocation -> {
                 if (callback != null) callback.accept(backLocation);
-                if (backLocation == null) return;
+                if (backLocation == null) {
+                    cooldowns.remove(playerUuid);
+                    return;
+                }
                 Connect.get().sendMessage(backLocation.getServer(), BACK, Json.serialize(backLocation));
             });
     }
