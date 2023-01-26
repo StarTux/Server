@@ -1,8 +1,11 @@
 package com.cavetale.server;
 
 import com.cavetale.core.util.Json;
+import com.cavetale.server.back.BackCommand;
+import com.cavetale.server.back.ServerBackProvider;
 import com.winthier.connect.Connect;
 import com.winthier.connect.Redis;
+import com.winthier.sql.SQLDatabase;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,11 +20,13 @@ import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import static com.cavetale.server.sql.SQLStatic.getDatabaseClasses;
 
 public final class ServerPlugin extends JavaPlugin {
     public static final String SERVER_SIDEBAR_PREFIX = "cavetale.server-sidebar.";
     @Getter protected static ServerPlugin instance;
     protected final ServerCommand serverCommand = new ServerCommand(this);
+    protected final BackCommand backCommand = new BackCommand(this);
     protected final WhoCommand whoCommand = new WhoCommand(this);
     protected final ServerAdminCommand serverAdminCommand = new ServerAdminCommand(this);
     protected final EventListener eventListener = new EventListener(this);
@@ -33,13 +38,19 @@ public final class ServerPlugin extends JavaPlugin {
     protected boolean enabling;
     protected boolean disabling;
     protected long sidebarLinesUpdated;
+    protected final ServerBackProvider backProvider = new ServerBackProvider();
+    private final SQLDatabase database = new SQLDatabase(this);
 
     @Override
     public void onEnable() {
         enabling = true;
         instance = this;
+        database.registerTables(getDatabaseClasses());
+        database.createAllTables();
         Bungee.register(this);
+        backProvider.enable();
         serverCommand.enable();
+        backCommand.enable();
         whoCommand.enable();
         serverAdminCommand.enable();
         eventListener.enable();
@@ -64,6 +75,8 @@ public final class ServerPlugin extends JavaPlugin {
             Redis.del("cavetale.server_wake." + serverName);
         }
         syncCommandsNow();
+        database.waitForAsyncTask();
+        database.close();
     }
 
     public List<ServerSlot> getServerList() {
@@ -253,5 +266,9 @@ public final class ServerPlugin extends JavaPlugin {
                     }
                 }
             });
+    }
+
+    public static SQLDatabase database() {
+        return instance.database;
     }
 }

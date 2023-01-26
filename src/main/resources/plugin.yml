@@ -8,7 +8,7 @@ api-version: 1.19
 author: StarTux
 website: https://github.com/StarTux/Server
 
-depend: [Core, Connect, Mytems, Title]
+depend: [Core, Connect, Mytems, SQL, Title]
 softdepend: []
 
 commands:
@@ -30,6 +30,12 @@ commands:
     permission: server.who
     description: List players on all servers
     usage: /who
+
+  back:
+    aliases: []
+    permission: server.back
+    description: Return to your last survival location
+    usage: /back
 
 permissions:
 
@@ -55,4 +61,8 @@ permissions:
 
   server.who:
     description: Use /who
+    default: op
+
+  server.back:
+    description: Use /back
     default: op
