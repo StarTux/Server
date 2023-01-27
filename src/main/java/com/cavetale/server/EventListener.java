@@ -33,10 +33,13 @@ public final class EventListener implements Listener {
     private final ServerPlugin plugin;
     private final List<Component> sidebarLines = new ArrayList<>();
     private final List<Component> whoLines = new ArrayList<>();
+    private static final boolean CUSTOM_TAB_LIST = false;
 
     public void enable() {
         Bukkit.getPluginManager().registerEvents(this, plugin);
-        Bukkit.getScheduler().runTaskTimer(plugin, this::makeWhoLines, 0L, 1L);
+        if (CUSTOM_TAB_LIST) {
+            Bukkit.getScheduler().runTaskTimer(plugin, this::makeWhoLines, 0L, 1L);
+        }
     }
 
     /**
@@ -108,7 +111,7 @@ public final class EventListener implements Listener {
         header.add(DefaultFont.CAVETALE.forPlayer(player));
         header.add(textOfChildren(text(tiny("server "), GRAY), (plugin.serverSlot != null ? plugin.serverSlot.displayName : empty())));
         header.add(textOfChildren(text(tiny("players "), GRAY), text(Connect.get().getOnlinePlayerCount(), WHITE)));
-        header.addAll(whoLines);
+        if (CUSTOM_TAB_LIST) header.addAll(whoLines);
         event.header(PlayerHudPriority.HIGHEST, header);
     }
 
