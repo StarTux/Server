@@ -4,7 +4,6 @@ import com.cavetale.core.command.RemotePlayer;
 import com.cavetale.core.connect.Connect;
 import com.cavetale.core.event.hud.PlayerHudEvent;
 import com.cavetale.core.event.hud.PlayerHudPriority;
-import com.cavetale.core.font.DefaultFont;
 import com.cavetale.core.util.Json;
 import com.winthier.connect.event.ConnectMessageEvent;
 import com.winthier.title.TitlePlugin;
@@ -20,7 +19,6 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerLoginEvent;
 import static com.cavetale.core.font.Unicode.tiny;
-import static net.kyori.adventure.text.Component.empty;
 import static net.kyori.adventure.text.Component.join;
 import static net.kyori.adventure.text.Component.space;
 import static net.kyori.adventure.text.Component.text;
@@ -108,9 +106,13 @@ public final class EventListener implements Listener {
         }
         final Player player = event.getPlayer();
         List<Component> header = new ArrayList<>();
-        header.add(DefaultFont.CAVETALE.forPlayer(player));
-        header.add(textOfChildren(text(tiny("server "), GRAY), (plugin.serverSlot != null ? plugin.serverSlot.displayName : empty())));
-        header.add(textOfChildren(text(tiny("players "), GRAY), text(Connect.get().getOnlinePlayerCount(), WHITE)));
+        if (plugin.serverSlot != null) {
+            header.add(textOfChildren(text(tiny("server "), GRAY),
+                                      plugin.serverSlot.displayName,
+                                      space(),
+                                      text(Connect.get().getOnlinePlayerCount(), WHITE),
+                                      text(tiny(" online"), GRAY)));
+        }
         if (CUSTOM_TAB_LIST) header.addAll(whoLines);
         event.header(PlayerHudPriority.HIGHEST, header);
     }
