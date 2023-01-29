@@ -33,7 +33,7 @@ public final class EventListener implements Listener {
     private final ServerPlugin plugin;
     private final List<Component> sidebarLines = new ArrayList<>();
     private final List<Component> whoLines = new ArrayList<>();
-    private static final boolean CUSTOM_TAB_LIST = true;
+    private static final boolean CUSTOM_TAB_LIST = false;
 
     public void enable() {
         Bukkit.getPluginManager().registerEvents(this, plugin);
