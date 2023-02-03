@@ -271,4 +271,8 @@ public final class ServerPlugin extends JavaPlugin {
     public static SQLDatabase database() {
         return instance.database;
     }
+
+    public static void serverSidebar(List<Component> lines) {
+        instance.setServerSidebarLines(lines);
+    }
 }
