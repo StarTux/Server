@@ -135,7 +135,7 @@ public final class EventListener implements Listener {
     /**
      * Remember the last server that somebody quit.
      */
-    @EventHandler
+    @EventHandler(priority = EventPriority.MONITOR)
     private void onPlayerQuit(PlayerQuitEvent event) {
         final var uuid = event.getPlayer().getUniqueId();
         plugin.database().update(SQLBack.class)
