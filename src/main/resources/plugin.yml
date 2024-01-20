@@ -3,7 +3,7 @@ main: com.cavetale.server.ServerPlugin
 name: Server
 version: 0.1
 description: Server Plugin
-api-version: 1.19
+api-version: '1.20'
 
 author: StarTux
 website: https://github.com/StarTux/Server

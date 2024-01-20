@@ -24,6 +24,7 @@ public final class SQLBack implements SQLRow {
     private float pitch;
     @VarChar(255) private String description;
     private Date created;
+    @Nullable @VarChar(40) private String lastServer;
 
     public SQLBack() { }
 
@@ -43,6 +44,7 @@ public final class SQLBack implements SQLRow {
     }
 
     public BackLocation toBackLocation() {
-        return new BackLocation(player, NetworkServer.of(server), plugin, world, x, y, z, pitch, yaw, description);
+        final boolean logoutServer = lastServer != null && lastServer.equals(server);
+        return new BackLocation(player, NetworkServer.of(server), plugin, world, x, y, z, pitch, yaw, description, logoutServer);
     }
 }

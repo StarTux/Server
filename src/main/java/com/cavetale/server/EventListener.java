@@ -2,9 +2,11 @@ package com.cavetale.server;
 
 import com.cavetale.core.command.RemotePlayer;
 import com.cavetale.core.connect.Connect;
+import com.cavetale.core.connect.NetworkServer;
 import com.cavetale.core.event.hud.PlayerHudEvent;
 import com.cavetale.core.event.hud.PlayerHudPriority;
 import com.cavetale.core.util.Json;
+import com.cavetale.server.sql.SQLBack;
 import com.winthier.connect.event.ConnectMessageEvent;
 import com.winthier.title.TitlePlugin;
 import java.util.ArrayList;
@@ -18,6 +20,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerLoginEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import static com.cavetale.core.font.Unicode.tiny;
 import static net.kyori.adventure.text.Component.join;
 import static net.kyori.adventure.text.Component.space;
@@ -127,5 +130,17 @@ public final class EventListener implements Listener {
             if (slot.sidebarLines == null) continue;
             sidebarLines.addAll(slot.sidebarLines);
         }
+    }
+
+    /**
+     * Remember the last server that somebody quit.
+     */
+    @EventHandler
+    private void onPlayerQuit(PlayerQuitEvent event) {
+        final var uuid = event.getPlayer().getUniqueId();
+        plugin.database().update(SQLBack.class)
+            .set("lastServer", NetworkServer.current().registeredName)
+            .where(w -> w.eq("player", uuid))
+            .async(null);
     }
 }

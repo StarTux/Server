@@ -29,7 +29,7 @@ public final class ServerBackProvider implements BackProvider, Listener {
 
     @Override
     public void store(BackLocation backLocation) {
-        // If this store is dont shortly after a back request, we
+        // If this store is done shortly after a back request, we
         // assume that it was caused by the player leaving, thus we
         // impose a cooldown to avoid flip-flopping.
         Long cd = cooldowns.remove(backLocation.getPlayerUuid());
@@ -76,6 +76,24 @@ public final class ServerBackProvider implements BackProvider, Listener {
                     return;
                 }
                 Connect.get().sendMessage(backLocation.getServer(), BACK, Json.serialize(backLocation));
+            });
+    }
+
+    @Override
+    public void backAuto(UUID playerUuid, Consumer<BackLocation> callback) {
+        cooldowns.put(playerUuid, System.currentTimeMillis() + 10_000L);
+        load(playerUuid, backLocation -> {
+                if (backLocation != null && backLocation.isLogoutServer()) {
+                    if (callback != null) callback.accept(backLocation);
+                    Connect.get().sendMessage(backLocation.getServer(), BACK, Json.serialize(backLocation));
+                } else {
+                    if (callback != null) callback.accept(null);
+                    cooldowns.remove(playerUuid);
+                    if (backLocation == null) {
+                        cooldowns.remove(playerUuid);
+                        return;
+                    }
+                }
             });
     }
 

@@ -54,7 +54,7 @@
     <dependency>
       <groupId>io.papermc.paper</groupId>
       <artifactId>paper-api</artifactId>
-      <version>1.19.3-R0.1-SNAPSHOT</version>
+      <version>1.20.4-R0.1-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
 
@@ -104,6 +104,14 @@
       <artifactId>title</artifactId>
       <version>0.1-SNAPSHOT</version>
       <scope>provided</scope>
+    </dependency>
+
+    <!-- JUnit Testing -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.13.2</version>
+      <scope>test</scope>
     </dependency>
 
   </dependencies>

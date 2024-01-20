@@ -1,6 +1,5 @@
 package com.cavetale.server.sql;
 
-
 import com.winthier.sql.SQLRow;
 import java.util.List;
 
