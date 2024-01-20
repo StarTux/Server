@@ -24,7 +24,7 @@ public final class SQLBack implements SQLRow {
     private float pitch;
     @VarChar(255) private String description;
     private Date created;
-    @Nullable @VarChar(40) private String lastServer;
+    @VarChar(40) private String lastServer;
 
     public SQLBack() { }
 
@@ -40,6 +40,7 @@ public final class SQLBack implements SQLRow {
         this.pitch = backLocation.getPitch();
         this.description = backLocation.getDescription();
         this.created = new Date();
+        this.lastServer = server;
         return this;
     }
 
