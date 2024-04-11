@@ -1,5 +1,6 @@
 package com.cavetale.server;
 
+import com.cavetale.core.chat.Chat;
 import com.cavetale.core.command.AbstractCommand;
 import com.cavetale.core.command.RemotePlayer;
 import com.cavetale.core.connect.Connect;
@@ -34,10 +35,14 @@ public final class WhoCommand extends AbstractCommand<ServerPlugin> {
     }
 
     private void who(CommandSender sender) {
+        final Player senderPlayer = sender instanceof Player player
+            ? player
+            : null;
         for (ServerSlot slot : plugin.serverMap.values()) {
             slot.onlinePlayers.clear();
         }
         for (RemotePlayer player : Connect.get().getRemotePlayers()) {
+            if (senderPlayer != null && Chat.doesIgnore(senderPlayer.getUniqueId(), player.getUniqueId())) continue;
             ServerSlot slot = plugin.serverMap.get(player.getOriginServerName());
             if (slot == null) continue;
             slot.onlinePlayers.add(player);
