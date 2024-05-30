@@ -1,8 +1,8 @@
 package com.cavetale.server;
 
 import com.cavetale.core.command.RemotePlayer;
-import com.cavetale.core.event.player.PluginPlayerEvent.Detail;
 import com.cavetale.core.event.player.PluginPlayerEvent;
+import com.cavetale.core.event.player.PluginPlayerEvent.Detail;
 import com.winthier.connect.Connect;
 import com.winthier.connect.Redis;
 import java.util.ArrayList;
