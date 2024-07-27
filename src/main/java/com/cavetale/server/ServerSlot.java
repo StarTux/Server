@@ -169,7 +169,7 @@ public final class ServerSlot implements Comparable<ServerSlot> {
         component = Component.text()
             .append(displayName)
             .hoverEvent(HoverEvent.showText(tooltip.build()))
-            .clickEvent(ClickEvent.runCommand("/server " + commandName))
+            .clickEvent(ClickEvent.runCommand("/server " + name))
             .build();
         itemStack = serverTag.parseItemStack();
         itemStack.editMeta(meta -> {
