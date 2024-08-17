@@ -138,6 +138,10 @@ public final class ServerAdminCommand implements TabExecutor {
             case "hidden":
                 plugin.serverTag.hidden = Boolean.parseBoolean(value);
                 break;
+            case "lockedandhidden":
+                plugin.serverTag.hidden = Boolean.parseBoolean(value);
+                plugin.serverTag.locked = Boolean.parseBoolean(value);
+                break;
             case "displayName": {
                 Component comp = Json.deserializeComponent(value);
                 value = Json.serializeComponent(comp);
