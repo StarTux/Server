@@ -54,6 +54,7 @@ public final class ServerAdminCommand implements TabExecutor {
                                      "prio", "priority",
                                      "locked",
                                      "hidden",
+                                     "lockedandhidden",
                                      "displayName",
                                      "description",
                                      "material",
