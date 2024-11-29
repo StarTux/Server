@@ -260,7 +260,7 @@ public final class ServerPlugin extends JavaPlugin {
                         Bukkit.getScheduler().runTask(this, () -> {
                                 Player player = Bukkit.getPlayer(uuid);
                                 if (player != null) {
-                                    slot.tryToSwitch(player, true);
+                                    slot.tryToJoinPlayer(player, true);
                                 }
                             });
                     }

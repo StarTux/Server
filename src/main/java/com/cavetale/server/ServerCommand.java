@@ -41,7 +41,7 @@ public final class ServerCommand implements TabExecutor {
             sender.sendMessage(Component.text("Server not found: " + args[0]));
             return true;
         }
-        serverSlot.tryToSwitch(player, false);
+        serverSlot.tryToJoinPlayer(player, false);
         return true;
     }
 

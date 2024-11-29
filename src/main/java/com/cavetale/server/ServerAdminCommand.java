@@ -19,12 +19,14 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import static net.kyori.adventure.text.Component.text;
+import static net.kyori.adventure.text.format.NamedTextColor.*;
 
 @RequiredArgsConstructor
 public final class ServerAdminCommand implements TabExecutor {
@@ -66,6 +68,11 @@ public final class ServerAdminCommand implements TabExecutor {
             .description("Wake up server")
             .completers(CommandArgCompleter.supplyList(() -> new ArrayList<>(plugin.serverMap.keySet())))
             .senderCaller(this::wakeUp);
+        rootNode.addChild("send").arguments("<player> <server>")
+            .description("Send a player to a server")
+            .completers(CommandArgCompleter.ONLINE_PLAYERS,
+                        CommandArgCompleter.supplyList(() -> new ArrayList<>(plugin.serverMap.keySet())))
+            .senderCaller(this::send);
         plugin.getCommand("serveradmin").setExecutor(this);
     }
 
@@ -81,21 +88,21 @@ public final class ServerAdminCommand implements TabExecutor {
 
     boolean reload(CommandSender sender, String[] args) {
         plugin.loadThisServer();
-        sender.sendMessage(Component.text("Reloaded this server", NamedTextColor.YELLOW));
+        sender.sendMessage(text("Reloaded this server", YELLOW));
         return true;
     }
 
     boolean refresh(CommandSender sender, String[] args) {
         plugin.loadOtherServers();
-        sender.sendMessage(Component.text("Reloaded other servers", NamedTextColor.YELLOW));
+        sender.sendMessage(text("Reloaded other servers", YELLOW));
         return true;
     }
 
     boolean list(CommandSender sender, String[] args) {
         List<Component> servers = new ArrayList<>();
         for (ServerSlot slot : plugin.getServerList()) {
-            servers.add(Component.text().content(slot.name).color(NamedTextColor.YELLOW)
-                        .hoverEvent(HoverEvent.showText(Component.text()
+            servers.add(text().content(slot.name).color(YELLOW)
+                        .hoverEvent(HoverEvent.showText(text()
                                                         .append(slot.displayName)
                                                         .append(Component.newline())
                                                         .append(Component.join(JoinConfiguration.separator(Component.newline()),
@@ -103,8 +110,8 @@ public final class ServerAdminCommand implements TabExecutor {
                         .clickEvent(ClickEvent.runCommand("/serveradmin info " + slot.name))
                         .build());
         }
-        sender.sendMessage(Component.text().content(servers.size() + " servers: ").color(NamedTextColor.YELLOW)
-                           .append(Component.join(JoinConfiguration.separator(Component.text(", ", NamedTextColor.DARK_GRAY)),
+        sender.sendMessage(text().content(servers.size() + " servers: ").color(YELLOW)
+                           .append(Component.join(JoinConfiguration.separator(text(", ", DARK_GRAY)),
                                                   servers.toArray(new Component[0]))));
         return true;
     }
@@ -115,9 +122,9 @@ public final class ServerAdminCommand implements TabExecutor {
         if (slot == null) {
             throw new CommandWarn("Unknown server: " + args[0]);
         }
-        sender.sendMessage(Component.text().content("Server Info " + slot.name).color(NamedTextColor.YELLOW)
+        sender.sendMessage(text().content("Server Info " + slot.name).color(YELLOW)
                            .append(Component.newline())
-                           .append(Component.text(slot.tag.prettyPrint())));
+                           .append(text(slot.tag.prettyPrint())));
         return true;
     }
 
@@ -193,7 +200,7 @@ public final class ServerAdminCommand implements TabExecutor {
         } catch (IllegalArgumentException iae) {
             throw new CommandWarn("Invalid value: " + value);
         }
-        sender.sendMessage(Component.text("Set " + key + " to " + value, NamedTextColor.YELLOW));
+        sender.sendMessage(text("Set " + key + " to " + value, YELLOW));
         plugin.saveThisServer();
         plugin.registerServer(plugin.serverTag);
         plugin.storeThisServer();
@@ -205,7 +212,19 @@ public final class ServerAdminCommand implements TabExecutor {
         if (args.length != 1) return false;
         String name = args[0];
         Redis.lpush("cavetale.server_wake." + name, "wake_up", 30L);
-        sender.sendMessage(Component.text("Wake up signal sent to server " + name));
+        sender.sendMessage(text("Wake up signal sent to server " + name));
+        return true;
+    }
+
+    private boolean send(CommandSender sender, String[] args) {
+        if (args.length != 2) return false;
+        final Player player = CommandArgCompleter.requirePlayer(args[0]);
+        final ServerSlot slot = plugin.serverMap.get(args[1]);
+        if (slot == null) {
+            throw new CommandWarn("Unknown server: " + args[1]);
+        }
+        sender.sendMessage(text("Sending " + player.getName() + " to " + slot.getName() + "...", YELLOW));
+        slot.joinPlayer(player, false);
         return true;
     }
 }

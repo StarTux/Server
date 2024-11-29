@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.JoinConfiguration;
@@ -29,6 +30,7 @@ import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.plugin.Plugin;
 import static net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText;
 
+@Getter
 @RequiredArgsConstructor
 public final class ServerSlot implements Comparable<ServerSlot> {
     public static final String WILDCARD_PERMISSION = "server.visit.*";
@@ -46,29 +48,53 @@ public final class ServerSlot implements Comparable<ServerSlot> {
     protected List<Component> sidebarLines;
     protected List<RemotePlayer> onlinePlayers = new ArrayList<>();
 
-    public void tryToSwitch(Player player, boolean forceOnline) {
+    /**
+     * Try to join a player if they have all the necessary permissions.
+     * This will call joinPlayer() if successful.
+     * @param player the player
+     * @param forceOnline whether or not we are to assume the server
+     *   is online, that is NOT try to wake it up.  This shall only be
+     *   true in callback functions after the wakeup attempt has been
+     *   done.
+     * @return true if the player was allowed to pass, false
+     *   otherwise.
+     */
+    public boolean tryToJoinPlayer(Player player, boolean forceOnline) {
         if (name.equals(plugin.serverName)) {
             player.sendMessage(Component.text("You're already on this server", NamedTextColor.YELLOW));
-            return;
+            return false;
         }
         if (!hasPermission(player)) {
             player.sendMessage(Component.text("Server not available: " + commandName, NamedTextColor.RED));
-            return;
+            return false;
         }
         if (tag.locked) {
             if (!player.hasPermission("server.locked")) {
                 player.sendMessage(Component.text("This server is locked!", NamedTextColor.RED));
-                return;
+                return false;
             }
             player.sendMessage(Component.text("Entering a locked server!", NamedTextColor.RED, TextDecoration.ITALIC));
         }
         if (tag.hidden) {
             if (!player.hasPermission("server.hidden")) {
                 player.sendMessage(Component.text("This server is locked!", NamedTextColor.RED));
-                return;
+                return false;
             }
             player.sendMessage(Component.text("Entering a hidden server!", NamedTextColor.RED, TextDecoration.ITALIC));
         }
+        joinPlayer(player, forceOnline);
+        return true;
+    }
+
+    /**
+     * Send a player to this server.  The target server may still deny
+     * the player entrance if they do not have the necessary
+     * permissions.
+     * @param player See above
+     * @param See above
+     * @return See above
+     */
+    public void joinPlayer(Player player, boolean forceOnline) {
         if (!forceOnline && !Connect.getInstance().listServers().contains(name)) {
             player.sendMessage(Component.text()
                                .append(Component.text("Please wait while "))
@@ -231,7 +257,7 @@ public final class ServerSlot implements Comparable<ServerSlot> {
                 sender.sendMessage("[server:" + commandName + "] Player expected");
                 return true;
             }
-            tryToSwitch(player, false);
+            tryToJoinPlayer(player, false);
             return true;
         }
 
