@@ -13,6 +13,7 @@ import static net.kyori.adventure.text.format.NamedTextColor.*;
 
 public final class MenuListener implements Listener {
     public static final String MENU_KEY = "server:server";
+    public static final String MENU_PERMISSION = "server.server";
 
     protected void enable() {
         Bukkit.getPluginManager().registerEvents(this, ServerPlugin.serverPlugin());
@@ -20,7 +21,9 @@ public final class MenuListener implements Listener {
 
     @EventHandler
     private void onMenuItem(MenuItemEvent event) {
-        ServerPlugin.serverPlugin().getLogger().info(event.getEventName());
+        if (!event.getPlayer().hasPermission(MENU_PERMISSION)) {
+            return;
+        }
         event.addItem(builder -> builder
                       .priority(MenuItemEntry.Priority.HOTBAR)
                       .key(MENU_KEY)
@@ -30,6 +33,9 @@ public final class MenuListener implements Listener {
     @EventHandler
     private void onMenuItemClick(MenuItemClickEvent event) {
         if (MENU_KEY.equals(event.getEntry().getKey())) {
+            if (!event.getPlayer().hasPermission(MENU_PERMISSION)) {
+                return;
+            }
             new ServerMenu(event.getPlayer()).open();
         }
     }
