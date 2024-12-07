@@ -28,7 +28,11 @@ public final class ServerCommand implements TabExecutor {
     public boolean onCommand(final CommandSender sender, final Command command, final String alias, final String[] args) {
         if (args.length > 1) return false;
         if (args.length == 0) {
-            listServers(sender);
+            if (sender instanceof Player player) {
+                new ServerMenu(player).open();
+            } else {
+                listServers(sender);
+            }
             return true;
         }
         Player player = sender instanceof Player ? (Player) sender : null;

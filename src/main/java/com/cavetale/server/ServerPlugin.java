@@ -42,9 +42,13 @@ public final class ServerPlugin extends JavaPlugin {
     private final SQLDatabase database = new SQLDatabase(this);
 
     @Override
+    public void onLoad() {
+        instance = this;
+    }
+
+    @Override
     public void onEnable() {
         enabling = true;
-        instance = this;
         database.registerTables(getDatabaseClasses());
         database.createAllTables();
         Bungee.register(this);
@@ -57,6 +61,7 @@ public final class ServerPlugin extends JavaPlugin {
         loadThisServer();
         Bukkit.getScheduler().runTaskTimer(this, this::storeThisServer, 60L * 20L, 60L * 20L);
         Bukkit.getScheduler().runTaskTimer(this, this::loadOtherServers, 0L, 60L * 20L);
+        new MenuListener().enable();
         enabling = false;
     }
 
@@ -274,5 +279,9 @@ public final class ServerPlugin extends JavaPlugin {
 
     public static void serverSidebar(List<Component> lines) {
         instance.setServerSidebarLines(lines);
+    }
+
+    public static ServerPlugin serverPlugin() {
+        return instance;
     }
 }

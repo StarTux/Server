@@ -12,22 +12,27 @@ import java.util.Objects;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.JoinConfiguration;
-import net.kyori.adventure.text.TextComponent;
-import net.kyori.adventure.text.event.ClickEvent;
-import net.kyori.adventure.text.event.HoverEvent;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextColor;
-import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginIdentifiableCommand;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.plugin.Plugin;
+import static com.cavetale.mytems.util.Items.tooltip;
+import static net.kyori.adventure.text.Component.empty;
+import static net.kyori.adventure.text.Component.join;
+import static net.kyori.adventure.text.Component.newline;
+import static net.kyori.adventure.text.Component.text;
+import static net.kyori.adventure.text.JoinConfiguration.separator;
+import static net.kyori.adventure.text.event.ClickEvent.runCommand;
+import static net.kyori.adventure.text.event.HoverEvent.showText;
+import static net.kyori.adventure.text.format.NamedTextColor.*;
+import static net.kyori.adventure.text.format.TextColor.color;
+import static net.kyori.adventure.text.format.TextDecoration.*;
 import static net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText;
 
 @Getter
@@ -43,6 +48,7 @@ public final class ServerSlot implements Comparable<ServerSlot> {
     protected Component displayName;
     protected String flatDisplayName;
     protected List<Component> description;
+    protected List<Component> tooltip;
     protected Component component;
     protected ItemStack itemStack;
     protected List<Component> sidebarLines;
@@ -61,26 +67,26 @@ public final class ServerSlot implements Comparable<ServerSlot> {
      */
     public boolean tryToJoinPlayer(Player player, boolean forceOnline) {
         if (name.equals(plugin.serverName)) {
-            player.sendMessage(Component.text("You're already on this server", NamedTextColor.YELLOW));
+            player.sendMessage(text("You're already on this server", YELLOW));
             return false;
         }
         if (!hasPermission(player)) {
-            player.sendMessage(Component.text("Server not available: " + commandName, NamedTextColor.RED));
+            player.sendMessage(text("Server not available: " + commandName, RED));
             return false;
         }
         if (tag.locked) {
             if (!player.hasPermission("server.locked")) {
-                player.sendMessage(Component.text("This server is locked!", NamedTextColor.RED));
+                player.sendMessage(text("This server is locked!", RED));
                 return false;
             }
-            player.sendMessage(Component.text("Entering a locked server!", NamedTextColor.RED, TextDecoration.ITALIC));
+            player.sendMessage(text("Entering a locked server!", RED, ITALIC));
         }
         if (tag.hidden) {
             if (!player.hasPermission("server.hidden")) {
-                player.sendMessage(Component.text("This server is locked!", NamedTextColor.RED));
+                player.sendMessage(text("This server is locked!", RED));
                 return false;
             }
-            player.sendMessage(Component.text("Entering a hidden server!", NamedTextColor.RED, TextDecoration.ITALIC));
+            player.sendMessage(text("Entering a hidden server!", RED, ITALIC));
         }
         joinPlayer(player, forceOnline);
         return true;
@@ -96,11 +102,11 @@ public final class ServerSlot implements Comparable<ServerSlot> {
      */
     public void joinPlayer(Player player, boolean forceOnline) {
         if (!forceOnline && !Connect.getInstance().listServers().contains(name)) {
-            player.sendMessage(Component.text()
-                               .append(Component.text("Please wait while "))
+            player.sendMessage(text()
+                               .append(text("Please wait while "))
                                .append(displayName)
-                               .append(Component.text(" is starting up..."))
-                               .color(NamedTextColor.YELLOW));
+                               .append(text(" is starting up..."))
+                               .color(YELLOW));
             Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
                     Redis.set("cavetale.server_choice." + player.getUniqueId(), name, 60L);
                     if (tag.waitOnWake) {
@@ -109,10 +115,10 @@ public final class ServerSlot implements Comparable<ServerSlot> {
                 });
             return;
         }
-        player.sendMessage(Component.text().color(NamedTextColor.GREEN)
-                           .append(Component.text("Joining "))
+        player.sendMessage(text().color(GREEN)
+                           .append(text("Joining "))
                            .append(displayName)
-                           .append(Component.text("...")));
+                           .append(text("...")));
         PluginPlayerEvent.Name.SWITCH_SERVER.make(plugin, player)
             .detail(Detail.NAME, name)
             .callEvent();
@@ -169,38 +175,32 @@ public final class ServerSlot implements Comparable<ServerSlot> {
             : name;
         this.tag = serverTag;
         displayName = serverTag.parseDisplayName();
-        if (Objects.equals(displayName, Component.empty())) {
-            displayName = Component.text(name);
+        if (Objects.equals(displayName, empty())) {
+            displayName = text(name);
         }
         flatDisplayName = plainText().serialize(displayName);
         description = serverTag.parseDescription();
-        TextComponent.Builder tooltip = Component.text().append(displayName);
+        tooltip = new ArrayList<>();
+        tooltip.add(displayName);
         List<Component> attributes = new ArrayList<>();
         if (tag.locked) {
-            attributes.add(Component.text("locked", TextColor.color(0xFF0000)));
+            attributes.add(text("locked", color(0xFF0000)));
         }
         if (tag.hidden) {
-            attributes.add(Component.text("hidden", TextColor.color(0xFF00FF)));
+            attributes.add(text("hidden", color(0xFF00FF)));
         }
         if (!attributes.isEmpty()) {
-            tooltip.append(Component.newline());
-            tooltip.append(Component.join(JoinConfiguration.separator(Component.text(" ")),
-                                          attributes).decorate(TextDecoration.ITALIC));
+            tooltip.add(join(separator(text(" ")), attributes).decorate(ITALIC));
         }
-        tooltip.append(Component.newline())
-            .append(Component.text("/" + commandName, NamedTextColor.GRAY));
-        tooltip.append(Component.newline())
-            .append(Component.join(JoinConfiguration.separator(Component.newline()),
-                                   description.toArray(new Component[0])));
-        component = Component.text()
-            .append(displayName)
-            .hoverEvent(HoverEvent.showText(tooltip.build()))
-            .clickEvent(ClickEvent.runCommand("/server " + name))
-            .build();
+        tooltip.add(text("/" + commandName, GRAY));
+        tooltip.addAll(description);
+        component = displayName
+            .hoverEvent(showText(join(separator(newline()), tooltip)))
+            .clickEvent(runCommand("/server " + name));
         itemStack = serverTag.parseItemStack();
         itemStack.editMeta(meta -> {
-                meta.displayName(displayName);
-                meta.lore(description);
+                tooltip(meta, tooltip);
+                meta.addItemFlags(ItemFlag.values());
             });
         if (command != null && !command.getName().equals(commandName)) {
             removeCommand();
@@ -233,7 +233,10 @@ public final class ServerSlot implements Comparable<ServerSlot> {
 
     @Override
     public int compareTo(ServerSlot other) {
-        return Integer.compare(other.tag.priority, this.tag.priority);
+        int result = Integer.compare(other.tag.priority, this.tag.priority);
+        if (result != 0) return result;
+        result = name.compareTo(other.name);
+        return result;
     }
 
     final class MyCommand extends Command implements PluginIdentifiableCommand {

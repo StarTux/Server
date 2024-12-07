@@ -3,7 +3,6 @@ package com.cavetale.server;
 import com.cavetale.core.util.Json;
 import com.cavetale.mytems.Mytems;
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.Data;
@@ -35,7 +34,7 @@ public final class ServerTag {
     }
 
     public List<Component> parseDescription() {
-        if (description == null) return Collections.emptyList();
+        if (description == null) return List.of();
         return description.stream()
             .map(Json::deserializeComponent)
             .collect(Collectors.toList());
