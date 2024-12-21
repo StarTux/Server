@@ -30,6 +30,7 @@ public final class ServerCommand implements TabExecutor {
         if (args.length == 0) {
             if (sender instanceof Player player) {
                 new ServerMenu(player).open();
+                PluginPlayerEvent.Name.VIEW_SERVER_LIST.call(plugin, player);
             } else {
                 listServers(sender);
             }
