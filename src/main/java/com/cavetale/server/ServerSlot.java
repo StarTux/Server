@@ -1,10 +1,13 @@
 package com.cavetale.server;
 
 import com.cavetale.core.command.RemotePlayer;
+import com.cavetale.core.connect.NetworkServer;
 import com.cavetale.core.event.player.PluginPlayerEvent;
 import com.cavetale.core.event.player.PluginPlayerEvent.Detail;
+import com.cavetale.mytems.util.Text;
 import com.winthier.connect.Connect;
 import com.winthier.connect.Redis;
+import io.papermc.paper.datacomponent.DataComponentTypes;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -22,6 +25,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.plugin.Plugin;
+import static com.cavetale.core.font.Unicode.tiny;
 import static com.cavetale.mytems.util.Items.tooltip;
 import static net.kyori.adventure.text.Component.empty;
 import static net.kyori.adventure.text.Component.join;
@@ -53,6 +57,10 @@ public final class ServerSlot implements Comparable<ServerSlot> {
     protected ItemStack itemStack;
     protected List<Component> sidebarLines;
     protected List<RemotePlayer> onlinePlayers = new ArrayList<>();
+
+    public NetworkServer getNetworkServer() {
+        return NetworkServer.of(name);
+    }
 
     /**
      * Try to join a player if they have all the necessary permissions.
@@ -193,7 +201,11 @@ public final class ServerSlot implements Comparable<ServerSlot> {
             tooltip.add(join(separator(text(" ")), attributes).decorate(ITALIC));
         }
         tooltip.add(text("/" + commandName, GRAY));
-        tooltip.addAll(description);
+        for (Component line : description) {
+            for (Component line2 : Text.wrapLore2(plainText().serialize(line), str -> text(tiny(str), DARK_GRAY))) {
+                tooltip.add(line2);
+            }
+        }
         component = displayName
             .hoverEvent(showText(join(separator(newline()), tooltip)))
             .clickEvent(runCommand("/server " + name));
@@ -202,6 +214,7 @@ public final class ServerSlot implements Comparable<ServerSlot> {
                 tooltip(meta, tooltip);
                 meta.addItemFlags(ItemFlag.values());
             });
+        itemStack.unsetData(DataComponentTypes.ATTRIBUTE_MODIFIERS);
         if (command != null && !command.getName().equals(commandName)) {
             removeCommand();
         }
@@ -235,7 +248,7 @@ public final class ServerSlot implements Comparable<ServerSlot> {
     public int compareTo(ServerSlot other) {
         int result = Integer.compare(other.tag.priority, this.tag.priority);
         if (result != 0) return result;
-        result = name.compareTo(other.name);
+        result = name.compareTo(other.flatDisplayName);
         return result;
     }
 
