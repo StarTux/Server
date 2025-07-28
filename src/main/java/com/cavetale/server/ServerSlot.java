@@ -200,9 +200,9 @@ public final class ServerSlot implements Comparable<ServerSlot> {
         if (!attributes.isEmpty()) {
             tooltip.add(join(separator(text(" ")), attributes).decorate(ITALIC));
         }
-        tooltip.add(text("/" + commandName, GRAY));
+        tooltip.add(text("/" + commandName, DARK_GRAY));
         for (Component line : description) {
-            for (Component line2 : Text.wrapLore2(plainText().serialize(line), str -> text(tiny(str), DARK_GRAY))) {
+            for (Component line2 : Text.wrapLore2(plainText().serialize(line), str -> text(tiny(str), GRAY))) {
                 tooltip.add(line2);
             }
         }
