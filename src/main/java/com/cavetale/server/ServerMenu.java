@@ -87,8 +87,8 @@ public final class ServerMenu {
             final Vec2i guiSlot = entry.guiGroup.next();
             gui.setItem(guiSlot.x, guiSlot.z, entry.itemStack, click -> {
                     if (!(click.isLeftClick())) return;
-                    entry.click.run();
                     player.closeInventory();
+                    entry.click.run();
                     player.playSound(player, Sound.UI_BUTTON_CLICK, 0.5f, 1f);
                 });
             if (entry.red) {
