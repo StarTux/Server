@@ -69,7 +69,7 @@ public final class ServerMenu {
                                                                       text(tiny("with huge ores, epic"), GRAY),
                                                                       text(tiny("dungeons and dangerous"), GRAY),
                                                                       text(tiny("monster hives."), GRAY))),
-                              () -> player.performCommand("mine"),
+                              () -> player.performCommand("mine menu"),
                               false));
         entries.add(new Entry("market",
                               mainGroup,
